@@ -276,6 +276,43 @@
         if (urlInput) urlInput.removeAttribute('size');
         var kwInput = document.getElementById('add-keyword');
         if (kwInput) kwInput.removeAttribute('size');
+        var RESERVED_KEYWORDS = ['kuscc'];
+
+        function isReservedKeyword(value) {
+            return RESERVED_KEYWORDS.indexOf((value || '').trim().toLowerCase()) !== -1;
+        }
+
+        var reservedMessage = 'The custom short URL "kuscc" is reserved because it duplicates the hosting name.';
+
+        function refreshReservedKeywordState() {
+            if (!kwInput) return false;
+            var reserved = isReservedKeyword(kwInput.value);
+            kwInput.setCustomValidity(reserved ? reservedMessage : '');
+            if (addBtn) addBtn.disabled = reserved;
+            return reserved;
+        }
+
+        function stopReservedKeywordAction(event) {
+            if (!refreshReservedKeywordState()) return false;
+            if (kwInput) kwInput.reportValidity();
+            event.preventDefault();
+            event.stopPropagation();
+            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+            return true;
+        }
+
+        if (kwInput) {
+            refreshReservedKeywordState();
+            kwInput.addEventListener('input', refreshReservedKeywordState);
+        }
+
+        if (newUrlForm && kwInput) {
+            newUrlForm.addEventListener('submit', stopReservedKeywordAction, true);
+        }
+
+        if (addBtn && kwInput) {
+            addBtn.addEventListener('click', stopReservedKeywordAction, true);
+        }
 
         function setActionIcon(link, iconSvg) {
             link.innerHTML = iconSvg;
@@ -321,6 +358,59 @@
                 });
             }, true);
         }
+
+        function isDeleteLink(link) {
+            if (!link || !link.href) return false;
+            var cls = link.className || '';
+            if (cls.indexOf('button_delete') !== -1 || cls.indexOf('button-delete') !== -1) return true;
+            if (link.title && link.title.toLowerCase() === 'delete') return true;
+            return /admin-ajax\.php/.test(link.href) && /[?&]action=delete(?:&|$)/.test(link.href);
+        }
+
+        function deleteDialogIsOpen() {
+            var dialogs = document.querySelectorAll('.ui-dialog, #delete-confirm-dialog');
+            return Array.prototype.some.call(dialogs, function (dialog) {
+                var style = window.getComputedStyle(dialog);
+                return style.display !== 'none' && style.visibility !== 'hidden' && (dialog.offsetWidth > 0 || dialog.offsetHeight > 0);
+            });
+        }
+
+        function fallbackDeleteLink(link) {
+            var row = link.closest('tr');
+            var keyword = '';
+            try {
+                keyword = new URL(link.href).searchParams.get('keyword') || '';
+            } catch (e) {}
+
+            if (!window.confirm('Delete short URL' + (keyword ? ' "' + keyword + '"' : '') + '?')) return;
+
+            fetch(link.href, {
+                credentials: 'same-origin',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            }).then(function (response) {
+                return response.json();
+            }).then(function (data) {
+                if (!data || Number(data.success) !== 1) {
+                    throw new Error('Delete failed');
+                }
+                if (row && row.parentNode) row.parentNode.removeChild(row);
+                showToast('Deleted' + (keyword ? ' ' + keyword : ''));
+            }).catch(function () {
+                window.alert('Delete failed. Please refresh and try again.');
+            });
+        }
+
+        document.addEventListener('click', function (event) {
+            var link = event.target.closest && event.target.closest('a');
+            if (!isDeleteLink(link)) return;
+
+            event.preventDefault();
+
+            window.setTimeout(function () {
+                if (!document.body.contains(link) || deleteDialogIsOpen()) return;
+                fallbackDeleteLink(link);
+            }, 500);
+        }, true);
 
         function enhanceActionRows(root) {
             var scope = root || document;
@@ -1070,9 +1160,9 @@
             }, 100);
         }
 
-        var addBtn = document.getElementById('add-button');
         if (addBtn) {
-            addBtn.addEventListener('click', function () {
+            addBtn.addEventListener('click', function (event) {
+                if (stopReservedKeywordAction(event)) return;
                 // Snapshot the current short URL before AJAX runs
                 var prevUrl = getCurrentShortUrlValue();
                 var attempts = 0;
@@ -1105,7 +1195,7 @@
                 'page','post','posts','article','articles','content','node','item','items','detail','details',
                 'news','blog','blogs',
                 'category','categories','tag','tags','search','share','redirect','go','out','link','links',
-                'www','http','https','html','htm','php','aspx'
+                'www','http','https','html','htm','php','aspx','kuscc'
             ];
             var QUERY_HINTS = ['title','name','topic','q','query','search','keyword','keywords','s','text','headline','slug'];
 

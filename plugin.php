@@ -3,7 +3,7 @@
 Plugin Name: YOURLS UI Kit Template
 Plugin URI: https://github.com/uglyeoin/yourls-ui-kit-template
 Description: A modern admin skin for YOURLS built on UIkit 3. Drop-in replacement for the dated default look. Re-skins the existing admin pages, adds a fresh dashboard, and tidies up forms, tables and error screens — all via hooks, no core files touched.
-Version: 1.0.110
+Version: 1.0.112
 Author: Square Balloon Ltd
 Author URI: https://squareballoon.co.uk
 */
@@ -31,7 +31,7 @@ function yourls_ui_kit_template_head() {
 }
 
 function yourls_ui_kit_template_version() {
-    return '1.0.110';
+    return '1.0.112';
 }
 
 /* ------------------------------------------------------------------
@@ -180,6 +180,43 @@ function yourls_ui_kit_set_timezone() {
     try {
         yourls_get_db()->perform( "SET time_zone = '+07:00'" );
     } catch ( \Throwable $e ) {}
+}
+
+yourls_add_filter( 'shunt_add_new_link', 'yourls_ui_kit_block_reserved_keyword', 10, 4 );
+yourls_add_filter( 'keyword_is_reserved', 'yourls_ui_kit_mark_reserved_keyword', 10, 2 );
+
+function yourls_ui_kit_is_reserved_keyword( $keyword ) {
+    $keyword = function_exists( 'yourls_sanitize_keyword' ) ? yourls_sanitize_keyword( $keyword ) : trim( (string) $keyword );
+    return strtolower( $keyword ) === 'kuscc';
+}
+
+function yourls_ui_kit_reserved_keyword_message() {
+    return 'The custom short URL "kuscc" is reserved because it duplicates the hosting name.';
+}
+
+function yourls_ui_kit_block_reserved_keyword( $pre, $url = '', $keyword = '', $title = '' ) {
+    if ( !yourls_ui_kit_is_reserved_keyword( $keyword ) ) {
+        return $pre;
+    }
+
+    return array(
+        'status'     => 'fail',
+        'code'       => 'error:keyword',
+        'message'    => yourls_ui_kit_reserved_keyword_message(),
+        'errorCode'  => 400,
+        'statusCode' => 400,
+        'url'        => $url,
+        'keyword'    => $keyword,
+        'title'      => $title,
+    );
+}
+
+function yourls_ui_kit_mark_reserved_keyword( $reserved, $keyword = '' ) {
+    if ( yourls_ui_kit_is_reserved_keyword( $keyword ) ) {
+        return true;
+    }
+
+    return $reserved;
 }
 
 yourls_add_action( 'plugins_loaded', 'yourls_ui_kit_template_register_pages' );
