@@ -65,6 +65,17 @@
         });
     }
 
+    function sbApplyFieldClass(root) {
+        var scope = root && root.querySelectorAll ? root : document;
+        scope.querySelectorAll('input.text, input[type="text"], input[type="url"], input[type="search"], input[type="password"], select').forEach(function (el) {
+            var type = (el.type || '').toLowerCase();
+            if (type === 'button' || type === 'submit' || type === 'reset' || type === 'hidden' || type === 'checkbox' || type === 'radio' || type === 'color' || type === 'file') return;
+            if (el.classList.contains('sb-colour-picker') || el.classList.contains('sb-btn-has-icon')) return;
+            if (el.closest('#filter_buttons')) return;
+            el.classList.add('sb-field');
+        });
+    }
+
     function ready(fn) {
         if (document.readyState !== 'loading') fn();
         else document.addEventListener('DOMContentLoaded', fn);
@@ -186,6 +197,8 @@
     // ─────────────────────────────────────────────────────────────────
 
     ready(function () {
+        sbApplyFieldClass(document);
+
         var pluginsTable = document.querySelector('#main_table tr.plugin, #main_table td.plugin_name, table#plugins_table');
         var isPluginsPage = /\/plugins\.php$/.test(window.location.pathname) && !window.location.search.match(/[?&]page=/);
         if (pluginsTable || isPluginsPage) {

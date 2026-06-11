@@ -26,6 +26,17 @@
     0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.05);
   --sb-shadow-lg:
     0 4px 10px rgba(15, 23, 42, 0.05), 0 18px 40px rgba(15, 23, 42, 0.08);
+  --sb-input-height: 42px;
+  --sb-input-padding-x: 14px;
+  --sb-input-font-size: 14px;
+  --sb-input-radius: var(--sb-radius-sm);
+  --sb-input-bg: #fff;
+  --sb-input-border: var(--sb-border);
+  --sb-input-text: var(--sb-text);
+  --sb-input-placeholder: #94a3b8;
+  --sb-input-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --sb-input-focus-shadow:
+    var(--sb-input-shadow), 0 0 0 3px var(--sb-accent-ring);
 }
 
 .material-symbols-outlined,
@@ -48,6 +59,116 @@
   -webkit-font-smoothing: antialiased;
   vertical-align: middle;
   user-select: none;
+}
+
+/* ---------- Unified form fields ---------- */
+
+.sb-field,
+input.text,
+input#add-url,
+input#add-keyword,
+input#add-title,
+#new_url input[type="text"],
+#new_url input[type="url"],
+#filter_options input[type="text"],
+#filter_options input[type="search"],
+#filter_options select,
+body.login form#login input[type="text"],
+body.login form#login input[type="password"],
+body.login #wrap form input[type="text"],
+body.login #wrap form input[type="password"],
+body.public-site .sb-public-form input.text,
+body.public-site .sb-public-form input[type="text"],
+body.public-site .sb-public-form input[type="url"],
+.sb-colour-hex {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  height: var(--sb-input-height);
+  min-height: var(--sb-input-height);
+  padding: 0 var(--sb-input-padding-x);
+  border: 1px solid var(--sb-input-border);
+  border-radius: var(--sb-input-radius);
+  background: var(--sb-input-bg);
+  color: var(--sb-input-text);
+  font: inherit;
+  font-size: var(--sb-input-font-size);
+  font-weight: 600;
+  line-height: 1.4;
+  box-shadow: var(--sb-input-shadow);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+  margin: 0;
+}
+
+.sb-field::placeholder,
+input.text::placeholder,
+input#add-url::placeholder,
+input#add-keyword::placeholder,
+input#add-title::placeholder,
+#new_url input::placeholder,
+#filter_options input::placeholder,
+body.public-site .sb-public-form input::placeholder {
+  color: var(--sb-input-placeholder);
+  opacity: 1;
+}
+
+.sb-field:focus,
+input.text:focus,
+input#add-url:focus,
+input#add-keyword:focus,
+input#add-title:focus,
+#new_url input[type="text"]:focus,
+#new_url input[type="url"]:focus,
+#filter_options input[type="text"]:focus,
+#filter_options input[type="search"]:focus,
+#filter_options select:focus,
+body.login form#login input[type="text"]:focus,
+body.login form#login input[type="password"]:focus,
+body.login #wrap form input[type="text"]:focus,
+body.login #wrap form input[type="password"]:focus,
+body.public-site .sb-public-form input.text:focus,
+body.public-site .sb-public-form input[type="text"]:focus,
+body.public-site .sb-public-form input[type="url"]:focus,
+.sb-colour-hex:focus {
+  outline: none;
+  border-color: var(--sb-accent);
+  background-color: var(--sb-input-bg);
+  box-shadow: var(--sb-input-focus-shadow);
+}
+
+#filter_options select,
+#filter_options select.sb-field {
+  padding-right: 34px;
+  cursor: pointer;
+  appearance: none;
+  background-color: var(--sb-input-bg);
+  background-image:
+    linear-gradient(45deg, transparent 50%, #94a3b8 50%),
+    linear-gradient(135deg, #94a3b8 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% + 2px),
+    calc(100% - 12px) calc(50% + 2px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+#filter_options select:focus,
+#filter_options select.sb-field:focus {
+  background-color: var(--sb-input-bg);
+}
+
+.sb-field:disabled,
+input.text:disabled,
+#filter_options select:disabled {
+  background: var(--sb-surface-muted);
+  color: var(--sb-text-muted);
+  cursor: not-allowed;
+  opacity: 0.85;
 }
 
 /* ---------- Base reset of YOURLS defaults ---------- */
@@ -750,10 +871,10 @@ main > h2 {
 
 .sb-colour-picker {
   width: 56px;
-  height: 42px;
+  height: var(--sb-input-height);
   padding: 0;
-  border: 1px solid var(--sb-border);
-  border-radius: 8px;
+  border: 1px solid var(--sb-input-border);
+  border-radius: var(--sb-input-radius);
   background: #fff;
   cursor: pointer;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
@@ -769,9 +890,6 @@ main > h2 {
 }
 
 .sb-colour-hex {
-  height: 42px !important;
-  border-color: var(--sb-border) !important;
-  border-radius: 8px !important;
   color: var(--sb-text) !important;
   font-family:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
@@ -782,11 +900,10 @@ main > h2 {
   text-transform: uppercase;
 }
 
-.sb-colour-hex:focus,
 .sb-colour-picker:focus {
   outline: none !important;
   border-color: var(--sb-accent) !important;
-  box-shadow: 0 0 0 3px rgba(30, 135, 240, 0.12) !important;
+  box-shadow: var(--sb-input-focus-shadow) !important;
 }
 
 .sb-settings-preview {
@@ -1119,36 +1236,6 @@ body.sb-plugins-readonly #main_table td.actions a {
   min-width: 112px;
   margin: 0 !important;
   box-sizing: border-box;
-}
-
-#new_url input[type="text"],
-#new_url input[type="url"],
-input.text,
-input#add-url,
-input#add-keyword,
-input#add-title {
-  background: #fff;
-  border: 1px solid var(--sb-border);
-  border-radius: 6px;
-  padding: 10px 14px;
-  font-size: 14px;
-  font-family: inherit;
-  color: var(--sb-text);
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
-  min-width: 0;
-  box-sizing: border-box;
-}
-
-input.text:focus,
-input#add-url:focus,
-input#add-keyword:focus,
-input#add-title:focus,
-#new_url input:focus {
-  outline: none;
-  border-color: var(--sb-accent);
-  box-shadow: 0 0 0 3px var(--sb-accent-ring);
 }
 
 #add-url,
@@ -1849,54 +1936,10 @@ table#main_table tfoot th {
 #filter_options input[type="search"],
 #filter_options select {
   width: 100%;
-  height: 40px;
-  border: 1px solid var(--sb-border);
-  border-radius: 10px;
-  background-color: #f8fafc;
-  color: var(--sb-text);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-  box-shadow: none;
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease,
-    background-color 0.15s ease;
-}
-
-#filter_options input[type="text"],
-#filter_options input[type="search"] {
-  min-width: 0;
-  padding: 0 12px;
-}
-
-#filter_options select {
-  min-width: 0;
-  padding: 0 34px 0 12px;
-  cursor: pointer;
-  appearance: none;
-  background-image:
-    linear-gradient(45deg, transparent 50%, #94a3b8 50%),
-    linear-gradient(135deg, #94a3b8 50%, transparent 50%);
-  background-position:
-    calc(100% - 18px) calc(50% + 2px),
-    calc(100% - 12px) calc(50% + 2px);
-  background-size: 6px 6px, 6px 6px;
-  background-repeat: no-repeat;
-}
-
-#filter_options input:focus,
-#filter_options select:focus {
-  outline: none;
-  border-color: var(--sb-accent);
-  background-color: #fff;
-  box-shadow: 0 0 0 3px rgba(30, 135, 240, 0.12);
 }
 
 .sb-filter-group-search input[name="search"] {
-  padding-left: 14px;
+  padding-left: var(--sb-input-padding-x);
 }
 
 .sb-filter-controls-inline select[name="click_filter"],
@@ -1928,12 +1971,12 @@ table#main_table tfoot th {
 #filter_options input[type="button"],
 #filter_options input.button {
   width: auto;
-  height: 40px;
+  height: var(--sb-input-height);
   min-width: 104px;
   padding: 0 20px;
   margin: 0;
-  border-radius: 10px;
-  font-size: 13px;
+  border-radius: var(--sb-input-radius);
+  font-size: var(--sb-input-font-size);
   font-weight: 700;
 }
 
@@ -2768,31 +2811,7 @@ body.login form#login input[type="text"],
 body.login form#login input[type="password"],
 body.login #wrap form input[type="text"],
 body.login #wrap form input[type="password"] {
-  display: block;
   width: 100% !important;
-  box-sizing: border-box;
-  margin: 0 !important;
-  min-height: 42px;
-  border: 1px solid var(--sb-border) !important;
-  border-radius: 8px;
-  background: #fff !important;
-  color: var(--sb-text) !important;
-  font-size: 14px;
-  font-weight: 600;
-  padding: 0 12px !important;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-body.login form#login input[type="text"]:focus,
-body.login form#login input[type="password"]:focus,
-body.login #wrap form input[type="text"]:focus,
-body.login #wrap form input[type="password"]:focus {
-  outline: none !important;
-  border-color: var(--sb-accent) !important;
-  box-shadow: 0 0 0 3px rgba(30, 135, 240, 0.12) !important;
 }
 
 body.login form#login input[type="submit"],
@@ -3273,34 +3292,6 @@ a.uk-button-danger:visited {
   font-size: 12px !important;
   font-weight: 800 !important;
   letter-spacing: 0.055em !important;
-}
-
-#new_url input[type="text"],
-#new_url input[type="url"],
-#new_url input.text {
-  height: 42px !important;
-  border: 1px solid #dbe3ef !important;
-  border-radius: 8px !important;
-  background: #fff !important;
-  color: #111827 !important;
-  font-size: 15px !important;
-  padding: 0 14px !important;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
-}
-
-#new_url input[type="text"]::placeholder,
-#new_url input[type="url"]::placeholder,
-#new_url input.text::placeholder {
-  color: #94a3b8 !important;
-}
-
-#new_url input[type="text"]:focus,
-#new_url input[type="url"]:focus,
-#new_url input.text:focus {
-  border-color: var(--sb-accent, #1e87f0) !important;
-  box-shadow:
-    0 0 0 3px rgba(30, 135, 240, 0.14),
-    0 1px 2px rgba(15, 23, 42, 0.04) !important;
 }
 
 #new_url #add-button:hover {
@@ -4033,10 +4024,11 @@ body.public-site .sb-public-kw-group {
   align-items: stretch;
   width: 100%;
   min-width: 0;
+  min-height: var(--sb-input-height);
   overflow: hidden;
-  border: 1px solid var(--sb-border);
-  border-radius: var(--sb-radius-sm);
-  background: var(--sb-surface-muted);
+  border: 1px solid var(--sb-input-border);
+  border-radius: var(--sb-input-radius);
+  background: var(--sb-input-bg);
   transition:
     background-color 0.15s ease,
     border-color 0.15s ease,
@@ -4045,8 +4037,8 @@ body.public-site .sb-public-kw-group {
 
 body.public-site .sb-public-kw-group:focus-within {
   border-color: var(--sb-accent);
-  background: var(--sb-surface);
-  box-shadow: 0 0 0 4px var(--sb-accent-ring);
+  background: var(--sb-input-bg);
+  box-shadow: var(--sb-input-focus-shadow);
 }
 
 body.public-site .sb-public-kw-prefix {
@@ -4069,51 +4061,30 @@ body.public-site .sb-public-kw-prefix {
 body.public-site .sb-public-form input.text,
 body.public-site .sb-public-form input[type="text"],
 body.public-site .sb-public-form input[type="url"] {
-  display: block;
   width: 100% !important;
   max-width: none !important;
-  box-sizing: border-box;
   margin: 0 !important;
-  min-height: 44px;
-  padding: 10px 14px;
-  border: 1px solid var(--sb-border);
-  border-radius: var(--sb-radius-sm);
-  background: var(--sb-surface-muted);
-  color: var(--sb-text);
-  font-size: 15px;
-  line-height: 1.4;
-  box-shadow: none;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
 }
 
 body.public-site .sb-public-kw-group input.text,
-body.public-site .sb-public-kw-group input[type="text"] {
+body.public-site .sb-public-kw-group input[type="text"],
+body.public-site .sb-public-kw-group .sb-field {
   flex: 1 1 0;
-  min-width: 0;
-  height: 44px;
-  min-height: 44px;
-  max-height: 44px;
+  width: auto;
+  height: var(--sb-input-height);
+  min-height: var(--sb-input-height);
+  max-height: var(--sb-input-height);
   border: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
 }
 
-body.public-site .sb-public-form input.text:focus,
-body.public-site .sb-public-form input[type="text"]:focus,
-body.public-site .sb-public-form input[type="url"]:focus {
-  outline: none;
-  border-color: var(--sb-accent);
-  background: var(--sb-surface);
-  box-shadow: 0 0 0 4px var(--sb-accent-ring);
-}
-
 body.public-site .sb-public-kw-group:focus-within input.text,
-body.public-site .sb-public-kw-group:focus-within input[type="text"] {
+body.public-site .sb-public-kw-group:focus-within input[type="text"],
+body.public-site .sb-public-kw-group:focus-within .sb-field {
   box-shadow: none !important;
+  border-color: transparent !important;
 }
 
 body.public-site .sb-public-form .sb-kw-suggested {
@@ -4127,11 +4098,11 @@ body.public-site .sb-public-kw-group .sb-kw-suggested {
 
 body.public-site .sb-public-form input[type="submit"] {
   min-width: 140px;
-  min-height: 44px;
+  min-height: var(--sb-input-height);
   margin: 0 !important;
   padding: 0 28px;
   border: 1px solid var(--sb-accent);
-  border-radius: var(--sb-radius-sm);
+  border-radius: var(--sb-input-radius);
   background: var(--sb-accent);
   color: #fff;
   font-size: 14px;
@@ -4382,21 +4353,18 @@ body.public-site .sb-public-note {
   body.public-site .sb-public-kw-prefix {
     flex: 0 1 auto;
     max-width: 52%;
-    min-height: 44px;
+    min-height: var(--sb-input-height);
     padding: 0 8px;
     font-size: 10px;
     line-height: 1.2;
   }
 
   body.public-site .sb-public-kw-group input.text,
-  body.public-site .sb-public-kw-group input[type="text"] {
+  body.public-site .sb-public-kw-group input[type="text"],
+  body.public-site .sb-public-kw-group .sb-field {
     flex: 1 1 0;
     min-width: 0;
-    height: 44px;
-    min-height: 44px;
-    max-height: 44px;
-    padding: 10px 10px;
-    font-size: 14px;
+    padding: 0 10px;
   }
 
   body.public-site .sb-public-form input[type="submit"] {
@@ -4512,22 +4480,8 @@ body:not(.public-site):not(.login) #new_url:not(.sb-public-form) label {
   letter-spacing: 0.06em;
 }
 
-body:not(.public-site):not(.login) #new_url:not(.sb-public-form) input.text,
-body:not(.public-site):not(.login) #new_url:not(.sb-public-form) input[type="text"],
-body:not(.public-site):not(.login) #new_url:not(.sb-public-form) input[type="url"] {
-  min-height: 40px;
-  border-color: #dfe7f1;
-  border-radius: 8px;
-  background: #f8fafc;
-  font-weight: 700;
-}
-
-body:not(.public-site):not(.login) #new_url:not(.sb-public-form) input:focus {
-  background: #fff;
-}
-
 body:not(.public-site):not(.login) #new_url:not(.sb-public-form) #add-button {
-  min-height: 40px !important;
+  min-height: var(--sb-input-height) !important;
   min-width: 118px !important;
   border-radius: 8px !important;
   background: var(--sb-accent) !important;
@@ -4636,20 +4590,6 @@ body:not(.public-site):not(.login) #pagination {
 body:not(.public-site):not(.login) #nav_links {
   gap: 8px;
   margin: 28px auto 0 !important;
-}
-
-body:not(.public-site):not(.login) #filter_options input[type="text"],
-body:not(.public-site):not(.login) #filter_options input[type="search"],
-body:not(.public-site):not(.login) #filter_options select {
-  border-color: #dfe7f1;
-  border-radius: 10px;
-  background-color: #f8fafc;
-}
-
-body:not(.public-site):not(.login) #filter_options input[type="text"]:focus,
-body:not(.public-site):not(.login) #filter_options input[type="search"]:focus,
-body:not(.public-site):not(.login) #filter_options select:focus {
-  background-color: #fff;
 }
 
 body:not(.public-site):not(.login) #filter_options input[type="submit"],
