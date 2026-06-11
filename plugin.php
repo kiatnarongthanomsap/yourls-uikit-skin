@@ -3,7 +3,7 @@
 Plugin Name: YOURLS UI Kit Template
 Plugin URI: https://github.com/uglyeoin/yourls-ui-kit-template
 Description: A modern admin skin for YOURLS built on UIkit 3. Drop-in replacement for the dated default look. Re-skins the existing admin pages, adds a fresh dashboard, and tidies up forms, tables and error screens — all via hooks, no core files touched.
-Version: 1.0.137
+Version: 1.0.139
 Author: Square Balloon Ltd
 Author URI: https://squareballoon.co.uk
 */
@@ -31,7 +31,7 @@ function yourls_ui_kit_template_head() {
 }
 
 function yourls_ui_kit_template_version() {
-    return '1.0.137';
+    return '1.0.139';
 }
 
 yourls_add_filter( 'html_title', 'yourls_ui_kit_template_html_title', 10, 2 );
@@ -40,11 +40,11 @@ function yourls_ui_kit_template_html_title( $title, $context ) {
     $plain_title = html_entity_decode( strip_tags( $title ), ENT_QUOTES, 'UTF-8' );
     $plain_title = preg_replace( '/\s+/', ' ', trim( $plain_title ) );
 
-    if ( stripos( $plain_title, 'gokuscc' ) === 0 ) {
+    if ( stripos( $plain_title, 'LINK-KUSCC:' ) === 0 ) {
         return htmlspecialchars( $plain_title, ENT_QUOTES, 'UTF-8' );
     }
 
-    return 'gokuscc ' . htmlspecialchars( $plain_title, ENT_QUOTES, 'UTF-8' );
+    return 'LINK-KUSCC: ' . htmlspecialchars( $plain_title, ENT_QUOTES, 'UTF-8' );
 }
 
 /* ------------------------------------------------------------------

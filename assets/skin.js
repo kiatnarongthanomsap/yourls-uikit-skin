@@ -995,6 +995,144 @@
             perPageInput.parentNode.replaceChild(perPageSelect, perPageInput);
         }
 
+        // 5c. Rebuild filter panel into a structured card layout.
+        if (filterOptions && !filterOptions.dataset.sbPanelDone) {
+            filterOptions.dataset.sbPanelDone = '1';
+            var filterForm = document.getElementById('filter_form');
+            if (filterForm) {
+                filterForm.classList.add('sb-filter-panel');
+                if (!filterForm.querySelector('.sb-filter-header')) {
+                    var filterHeader = document.createElement('div');
+                    filterHeader.className = 'sb-filter-header';
+                    filterHeader.innerHTML = '<span class="sb-filter-header-icon" uk-icon="icon: search; ratio: 1.1"></span><span class="sb-filter-header-title">Filter &amp; search links</span>';
+                    filterForm.insertBefore(filterHeader, filterForm.firstChild);
+                }
+            }
+
+            function makeFilterHint(text) {
+                var hint = document.createElement('span');
+                hint.className = 'sb-filter-hint';
+                hint.textContent = text;
+                return hint;
+            }
+
+            function makeFilterGroup(className, labelText, elements) {
+                var group = document.createElement('div');
+                group.className = 'sb-filter-group ' + className;
+                if (labelText) {
+                    var label = document.createElement('span');
+                    label.className = 'sb-filter-label';
+                    label.textContent = labelText;
+                    group.appendChild(label);
+                }
+                var controls = document.createElement('div');
+                controls.className = 'sb-filter-controls';
+                elements.forEach(function (el) {
+                    if (el) controls.appendChild(el);
+                });
+                group.appendChild(controls);
+                return group;
+            }
+
+            function getFilterField(selector) {
+                return filterOptions.querySelector(selector);
+            }
+
+            var searchField = getFilterField('input[name="search"]');
+            var searchInField = getFilterField('select[name="search_in"]');
+            var sortByField = getFilterField('select[name="sort_by"]');
+            var sortOrderField = getFilterField('select[name="sort_order"]');
+            var perpageField = getFilterField('select[name="perpage"], input[name="perpage"]');
+            var clickFilterField = getFilterField('select[name="click_filter"]');
+            var clickLimitField = getFilterField('input[name="click_limit"]');
+            var dateFilterField = getFilterField('select[name="date_filter"]');
+            var dateFirstField = getFilterField('input[name="date_first"]');
+            var dateAndSpan = document.getElementById('date_and');
+            var dateSecondField = getFilterField('input[name="date_second"]');
+            var filterButtons = document.getElementById('filter_buttons');
+
+            var primaryGrid = document.createElement('div');
+            primaryGrid.className = 'sb-filter-grid sb-filter-grid-primary';
+            if (searchField) primaryGrid.appendChild(makeFilterGroup('sb-filter-group-search', 'Search', [searchField]));
+            if (searchInField) primaryGrid.appendChild(makeFilterGroup('sb-filter-group-search-in', 'In', [searchInField]));
+
+            var optionsGrid = document.createElement('div');
+            optionsGrid.className = 'sb-filter-grid sb-filter-grid-options';
+            if (sortByField) optionsGrid.appendChild(makeFilterGroup('sb-filter-group-sort-by', 'Sort by', [sortByField]));
+            if (sortOrderField) optionsGrid.appendChild(makeFilterGroup('sb-filter-group-sort-order', 'Order', [sortOrderField]));
+            if (perpageField) optionsGrid.appendChild(makeFilterGroup('sb-filter-group-perpage', 'Per page', [perpageField]));
+
+            var advancedSection = document.createElement('div');
+            advancedSection.className = 'sb-filter-advanced sb-filter-advanced-open';
+            var advancedToggle = document.createElement('button');
+            advancedToggle.type = 'button';
+            advancedToggle.className = 'sb-filter-advanced-toggle';
+            advancedToggle.setAttribute('aria-expanded', 'true');
+            advancedToggle.innerHTML = '<span uk-icon="icon: settings; ratio: 0.9"></span><span>Advanced filters</span><span class="sb-filter-advanced-caret" uk-icon="icon: chevron-down; ratio: 0.8"></span>';
+            advancedToggle.addEventListener('click', function () {
+                var open = advancedSection.classList.toggle('sb-filter-advanced-open');
+                advancedToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+
+            var advancedGrid = document.createElement('div');
+            advancedGrid.className = 'sb-filter-grid sb-filter-grid-advanced';
+
+            if (clickFilterField || clickLimitField) {
+                var clicksControls = document.createElement('div');
+                clicksControls.className = 'sb-filter-controls sb-filter-controls-inline';
+                if (clickFilterField) {
+                    clicksControls.appendChild(makeFilterHint('with'));
+                    clicksControls.appendChild(clickFilterField);
+                }
+                if (clickLimitField) {
+                    clicksControls.appendChild(makeFilterHint('than'));
+                    clicksControls.appendChild(clickLimitField);
+                    clicksControls.appendChild(makeFilterHint('clicks'));
+                }
+                var clicksGroup = document.createElement('div');
+                clicksGroup.className = 'sb-filter-group sb-filter-group-clicks';
+                var clicksLabel = document.createElement('span');
+                clicksLabel.className = 'sb-filter-label';
+                clicksLabel.textContent = 'Clicks';
+                clicksGroup.appendChild(clicksLabel);
+                clicksGroup.appendChild(clicksControls);
+                advancedGrid.appendChild(clicksGroup);
+            }
+
+            if (dateFilterField || dateFirstField || dateSecondField) {
+                var dateControls = document.createElement('div');
+                dateControls.className = 'sb-filter-controls sb-filter-controls-inline';
+                if (dateFilterField) dateControls.appendChild(dateFilterField);
+                if (dateFirstField) dateControls.appendChild(dateFirstField);
+                if (dateAndSpan) dateControls.appendChild(dateAndSpan);
+                if (dateSecondField) dateControls.appendChild(dateSecondField);
+
+                var dateGroup = document.createElement('div');
+                dateGroup.className = 'sb-filter-group sb-filter-group-date';
+                var dateLabel = document.createElement('span');
+                dateLabel.className = 'sb-filter-label';
+                dateLabel.textContent = 'Created';
+                dateGroup.appendChild(dateLabel);
+                dateGroup.appendChild(dateControls);
+                advancedGrid.appendChild(dateGroup);
+            }
+
+            advancedSection.appendChild(advancedToggle);
+            advancedSection.appendChild(advancedGrid);
+
+            var actionsBar = document.createElement('div');
+            actionsBar.className = 'sb-filter-actions';
+            if (filterButtons) actionsBar.appendChild(filterButtons);
+
+            while (filterOptions.firstChild) {
+                filterOptions.removeChild(filterOptions.firstChild);
+            }
+            filterOptions.appendChild(primaryGrid);
+            filterOptions.appendChild(optionsGrid);
+            if (advancedGrid.childNodes.length) filterOptions.appendChild(advancedSection);
+            filterOptions.appendChild(actionsBar);
+        }
+
         // 5b. Merge "Display X to Y of Z URLs." + "Overall, tracking..." onto one line.
         var overallP = document.getElementById('overall_tracking');
         if (overallP && overallP.previousElementSibling && overallP.previousElementSibling.tagName === 'P') {

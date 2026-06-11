@@ -1369,12 +1369,13 @@ table#main_table td.ip {
 .filter_form {
   background: #fff;
   border: 1px solid var(--sb-border);
-  padding: 20px 24px;
-  border-radius: var(--sb-radius);
+  border-radius: 14px;
   margin: 16px 0;
-  width: 50% !important;
+  width: 100% !important;
   max-width: none !important;
   box-sizing: border-box;
+  overflow: hidden;
+  box-shadow: var(--sb-shadow);
 }
 
 #main_table tfoot,
@@ -1387,51 +1388,178 @@ table#main_table td.ip {
   box-sizing: border-box;
 }
 
-#filter_options {
-  display: block;
-  color: var(--sb-text-muted);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.sb-filter-panel {
+  padding: 0 !important;
 }
 
-.sb-filter-row {
+.sb-filter-header {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 12px 14px;
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--sb-border);
+  background: linear-gradient(180deg, #fafbfd 0%, #fff 100%);
+}
+
+.sb-filter-header-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(30, 135, 240, 0.1);
+  color: var(--sb-accent);
+}
+
+.sb-filter-header-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sb-text);
+  letter-spacing: -0.01em;
+}
+
+#filter_options {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 18px 20px 20px;
+}
+
+.sb-filter-grid {
+  display: grid;
+  gap: 14px 16px;
   width: 100%;
+}
+
+.sb-filter-grid-primary {
+  grid-template-columns: minmax(0, 1fr) 180px;
+  margin-bottom: 14px;
+}
+
+.sb-filter-grid-options {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.sb-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   min-width: 0;
 }
 
-.sb-filter-text {
-  flex: 0 0 auto;
+.sb-filter-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--sb-text-muted);
+}
+
+.sb-filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sb-filter-controls-inline {
+  flex-wrap: wrap;
+}
+
+.sb-filter-hint {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.sb-filter-advanced {
+  padding-top: 4px;
+}
+
+.sb-filter-advanced-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--sb-text-muted);
+  font: inherit;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s ease;
 }
 
-.sb-filter-row + .sb-filter-row {
-  margin-top: 14px;
+.sb-filter-advanced-toggle:hover {
+  color: var(--sb-accent);
 }
 
-#filter_options input,
+.sb-filter-advanced-caret {
+  transition: transform 0.2s ease;
+}
+
+.sb-filter-advanced-open .sb-filter-advanced-caret {
+  transform: rotate(180deg);
+}
+
+.sb-filter-grid-advanced {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition:
+    max-height 0.25s ease,
+    opacity 0.2s ease,
+    margin 0.25s ease;
+  margin-bottom: 0;
+}
+
+.sb-filter-advanced-open .sb-filter-grid-advanced {
+  max-height: 260px;
+  opacity: 1;
+  margin-bottom: 16px;
+}
+
+.sb-filter-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+#filter_buttons {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin: 0;
+}
+
+#filter_options input[type="text"],
+#filter_options input[type="search"],
 #filter_options select {
+  width: 100%;
   height: 40px;
   border: 1px solid var(--sb-border);
-  border-radius: 8px;
-  background-color: #fff;
+  border-radius: 10px;
+  background-color: #f8fafc;
   color: var(--sb-text);
   font: inherit;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  box-shadow: none;
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease,
@@ -1445,76 +1573,68 @@ table#main_table td.ip {
 }
 
 #filter_options select {
-  min-width: 96px;
-  padding: 0 30px 0 10px;
+  min-width: 0;
+  padding: 0 34px 0 12px;
   cursor: pointer;
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #94a3b8 50%),
+    linear-gradient(135deg, #94a3b8 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% + 2px),
+    calc(100% - 12px) calc(50% + 2px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
 }
 
 #filter_options input:focus,
 #filter_options select:focus {
   outline: none;
   border-color: var(--sb-accent);
+  background-color: #fff;
   box-shadow: 0 0 0 3px rgba(30, 135, 240, 0.12);
 }
 
-#filter_options input[name="search"] {
-  flex: 1 1 420px;
-  max-width: none;
+.sb-filter-group-search input[name="search"] {
+  padding-left: 14px;
 }
 
-#filter_options select[name="search_in"] {
-  flex: 0 0 150px;
+.sb-filter-controls-inline select[name="click_filter"],
+.sb-filter-controls-inline select[name="date_filter"] {
+  flex: 0 1 130px;
+  width: auto;
 }
 
-#filter_options select[name="sort_by"],
-#filter_options select[name="sort_order"] {
-  flex: 0 0 160px;
-}
-
-#filter_options input[name="perpage"],
-#filter_options select[name="perpage"] {
-  flex: 0 0 84px;
+.sb-filter-controls-inline input[name="click_limit"] {
+  flex: 0 1 96px;
+  width: auto;
   text-align: center;
 }
 
-#filter_options select[name="click_filter"],
-#filter_options select[name="date_filter"] {
-  flex: 0 0 128px;
+.sb-filter-controls-inline input[name="date_first"],
+.sb-filter-controls-inline input[name="date_second"] {
+  flex: 1 1 140px;
+  width: auto;
+  min-width: 120px;
 }
 
-#filter_options input[name="click_limit"] {
-  flex: 0 0 124px;
-}
-
-#filter_options input[name="date_first"],
-#filter_options input[name="date_second"] {
-  flex: 0 0 180px;
-  max-width: 180px;
-}
-
-#filter_buttons {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-left: auto;
+#date_and {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
 }
 
 #filter_options input[type="submit"],
+#filter_options input[type="button"],
 #filter_options input.button {
+  width: auto;
   height: 40px;
-  min-width: 96px;
-  padding: 0 18px;
-  margin-left: 0;
-  border-radius: 8px;
+  min-width: 104px;
+  padding: 0 20px;
+  margin: 0;
+  border-radius: 10px;
   font-size: 13px;
   font-weight: 700;
-  box-shadow: 0 4px 10px rgba(217, 62, 43, 0.16);
-}
-
-#filter_options input[type="submit"] + input.button,
-#filter_options input.button + input.button {
-  margin-left: 0;
 }
 
 .datepicker {
@@ -1523,21 +1643,25 @@ table#main_table td.ip {
 }
 
 @media (max-width: 900px) {
-  #filter_form,
-  .filter_form {
-    padding: 16px;
+  .sb-filter-grid-primary,
+  .sb-filter-grid-options,
+  .sb-filter-grid-advanced {
+    grid-template-columns: 1fr;
   }
 
-  #filter_options input[name="search"],
-  #filter_options input[name="date_first"],
-  #filter_options input[name="date_second"],
+  .sb-filter-actions,
   #filter_buttons {
-    flex: 1 1 100%;
+    justify-content: stretch;
+    width: 100%;
   }
 
   #filter_buttons {
-    justify-content: flex-start;
-    margin-left: 0;
+    flex-direction: column-reverse;
+  }
+
+  #filter_options input[type="submit"],
+  #filter_options input.button {
+    width: 100%;
   }
 }
 
@@ -2269,9 +2393,9 @@ body.login h1 br {
 body.login header img#yourls-logo,
 body.login img#yourls-logo {
   display: block !important;
-  width: 500px !important;
+  width: 300px !important;
   height: auto !important;
-  max-width: 220px !important;
+  max-width: 300px !important;
   margin: 0 auto 14px !important;
   object-fit: contain;
 }
@@ -3730,7 +3854,7 @@ body.public-site .sb-public-note {
 }
 
 #filter_options input[type="submit"],
-#filter_options input.button {
+#filter_options input#submit-sort {
   background: var(--sb-accent);
   color: #fff;
   border: 1px solid var(--sb-accent);
@@ -3738,29 +3862,33 @@ body.public-site .sb-public-note {
   font-family: inherit;
   transition:
     filter 0.15s ease,
-    transform 0.05s ease;
-
-  height: 40px;
-  min-width: 96px;
-  padding: 0 18px;
-  margin: 8px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  box-shadow: 0 4px 10px rgba(30, 135, 240, 0.18);
+    transform 0.05s ease,
+    box-shadow 0.15s ease;
+  box-shadow: 0 4px 12px rgba(30, 135, 240, 0.22);
 }
 
-#filter_options input.button {
+#filter_options input[type="submit"]:hover,
+#filter_options input#submit-sort:hover {
+  filter: brightness(1.04);
+}
+
+#filter_options input#submit-clear-filter {
   background: #fff;
   color: var(--sb-text-muted);
-  border-color: var(--sb-border);
+  border: 1px solid var(--sb-border);
+  cursor: pointer;
+  font-family: inherit;
   box-shadow: none;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
 }
 
-#filter_options input.button:hover {
+#filter_options input#submit-clear-filter:hover {
   border-color: var(--sb-accent);
   color: var(--sb-accent);
-  filter: none;
+  background: #f8fbff;
 }
 
 @media (max-width: 760px) {
@@ -3920,14 +4048,14 @@ body:not(.public-site):not(.login) table#main_table td.ip {
 
 body:not(.public-site):not(.login) #filter_form,
 body:not(.public-site):not(.login) .filter_form {
-  width: 75% !important;
-  max-width: 980px !important;
-  margin: 14px auto 0 !important;
-  padding: 18px 20px !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 14px 0 0 !important;
+  padding: 0 !important;
   border-color: #dfe7f1 !important;
-  border-radius: 8px !important;
+  border-radius: 14px !important;
   background: #fff !important;
-  box-shadow: none !important;
+  box-shadow: var(--sb-shadow) !important;
 }
 
 body:not(.public-site):not(.login) #main_table tfoot th {
@@ -3948,20 +4076,25 @@ body:not(.public-site):not(.login) #nav_links {
   margin: 28px auto 0 !important;
 }
 
-body:not(.public-site):not(.login) #filter_options {
-  display: grid;
-  gap: 12px;
-}
-
-body:not(.public-site):not(.login) .sb-filter-row {
-  gap: 10px 12px;
-}
-
-body:not(.public-site):not(.login) #filter_options input,
+body:not(.public-site):not(.login) #filter_options input[type="text"],
+body:not(.public-site):not(.login) #filter_options input[type="search"],
 body:not(.public-site):not(.login) #filter_options select {
   border-color: #dfe7f1;
-  border-radius: 8px;
+  border-radius: 10px;
+  background-color: #f8fafc;
+}
+
+body:not(.public-site):not(.login) #filter_options input[type="text"]:focus,
+body:not(.public-site):not(.login) #filter_options input[type="search"]:focus,
+body:not(.public-site):not(.login) #filter_options select:focus {
   background-color: #fff;
+}
+
+body:not(.public-site):not(.login) #filter_options input[type="submit"],
+body:not(.public-site):not(.login) #filter_options input#submit-sort {
+  background: var(--sb-accent);
+  color: #fff;
+  border-color: var(--sb-accent);
 }
 
 @media (max-width: 980px) {
@@ -4231,6 +4364,16 @@ body.sb-plugins-page #main_table .plugin_actions {
 
 body.sb-plugins-page tr.active td {
   background: #f8fffb !important;
+}
+
+body.sb-plugins-page table#plugins_table td:first-child a,
+body.sb-plugins-page #main_table .plugin_name a {
+  font-weight: 500;
+}
+
+body.sb-plugins-page table#plugins_table tr.active td:first-child a,
+body.sb-plugins-page #main_table tr.active .plugin_name a {
+  font-weight: 800;
 }
 
 body.sb-tools-page main > p:has(strong),
