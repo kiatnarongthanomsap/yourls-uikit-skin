@@ -1179,7 +1179,8 @@ input#add-title:focus,
       "kw-input submit";
   }
 
-  #new_url #add-button {
+  #new_url #add-button,
+  #new_url .sb-input-btn-wrap--add {
     min-width: 104px;
   }
 }
@@ -1202,7 +1203,8 @@ input#add-title:focus,
     gap: 8px;
   }
 
-  #new_url #add-button {
+  #new_url #add-button,
+  #new_url .sb-input-btn-wrap--add {
     width: 100% !important;
     min-width: 0;
   }
@@ -1252,6 +1254,84 @@ input.button:active,
 input.button.button-warning,
 input[value="Delete"] {
   background: #f0506e;
+}
+
+/* Input buttons with Material icon overlay */
+.sb-input-btn-wrap {
+  display: inline-grid;
+  grid-template-areas: "btn";
+  align-items: center;
+  justify-items: stretch;
+  vertical-align: middle;
+  max-width: 100%;
+}
+
+.sb-input-btn-wrap > input {
+  grid-area: btn;
+  margin: 0 !important;
+}
+
+.sb-input-btn-wrap > .sb-btn-icon {
+  grid-area: btn;
+  justify-self: start;
+  align-self: center;
+  margin-left: 12px;
+  z-index: 1;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.sb-input-btn-wrap--primary {
+  color: #fff;
+}
+
+.sb-input-btn-wrap--secondary {
+  color: var(--sb-text-muted);
+}
+
+.sb-input-btn-wrap--danger {
+  color: #fff;
+}
+
+.sb-btn-has-icon {
+  padding-left: 38px !important;
+  text-align: center;
+}
+
+#new_url .sb-input-btn-wrap--add {
+  grid-area: submit;
+  justify-self: stretch;
+  align-self: stretch;
+  width: auto !important;
+  min-width: 112px;
+}
+
+#new_url .sb-input-btn-wrap--add > #add-button {
+  grid-area: auto;
+  width: 100%;
+  min-width: 0;
+}
+
+.sb-filter-actions .sb-input-btn-wrap,
+#filter_buttons .sb-input-btn-wrap {
+  width: auto;
+}
+
+#filter_buttons .sb-input-btn-wrap > input {
+  width: 100%;
+}
+
+body.public-site .sb-input-btn-wrap--public-submit {
+  width: 100%;
+}
+
+body.public-site .sb-input-btn-wrap--public-submit > input[type="submit"] {
+  width: 100%;
+}
+
+#delete-confirm-dialog .sb-input-btn-wrap,
+.ui-dialog .button-group .sb-input-btn-wrap {
+  display: inline-grid;
 }
 
 /* ---------- The main YOURLS table ---------- */
@@ -1880,7 +1960,8 @@ table#main_table tfoot th {
   }
 
   #filter_options input[type="submit"],
-  #filter_options input.button {
+  #filter_options input.button,
+  #filter_buttons .sb-input-btn-wrap {
     width: 100%;
   }
 }

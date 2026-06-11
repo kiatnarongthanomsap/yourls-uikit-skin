@@ -26,6 +26,45 @@
         return span;
     }
 
+    function sbInputButtonVariant(input) {
+        if (!input) return 'secondary';
+        var onclick = input.getAttribute('onclick') || '';
+        if (onclick.indexOf('remove_link_confirmed') !== -1 || /delete/i.test(input.value || '')) return 'danger';
+        if (input.id === 'add-button' || input.id === 'submit-sort') return 'primary';
+        if (input.classList.contains('primary')) return 'primary';
+        if (input.type === 'reset') return 'secondary';
+        return 'secondary';
+    }
+
+    function sbEnhanceInputButton(input, iconName, label, wrapClass) {
+        if (!input || input.dataset.sbIconDone) return input;
+        input.dataset.sbIconDone = '1';
+
+        if (label) input.value = label;
+
+        var wrapper = document.createElement('span');
+        wrapper.className = 'sb-input-btn-wrap sb-input-btn-wrap--' + sbInputButtonVariant(input);
+        if (wrapClass) wrapper.className += ' ' + wrapClass;
+
+        var parent = input.parentNode;
+        parent.insertBefore(wrapper, input);
+        wrapper.appendChild(sbIconEl(iconName, 'sb-btn-icon', 18));
+        wrapper.appendChild(input);
+
+        input.classList.add('sb-btn-has-icon');
+        return input;
+    }
+
+    function sbEnhanceDialogButtons(root) {
+        var scope = root && root.querySelectorAll ? root : document;
+        scope.querySelectorAll('#delete-confirm-dialog .button-group input[type="button"].primary, .ui-dialog .button-group input.button.primary').forEach(function (btn) {
+            sbEnhanceInputButton(btn, ICON_DELETE, btn.value || 'Delete');
+        });
+        scope.querySelectorAll('#delete-confirm-dialog .button-group input[type="reset"], .ui-dialog .button-group input[type="reset"]').forEach(function (btn) {
+            sbEnhanceInputButton(btn, 'close', btn.value || 'Cancel');
+        });
+    }
+
     function ready(fn) {
         if (document.readyState !== 'loading') fn();
         else document.addEventListener('DOMContentLoaded', fn);
@@ -340,9 +379,9 @@
             kwLabel.innerHTML = '<strong>Custom short URL</strong>';
         }
 
-        // Rename "Shorten The URL" button → "Shorten"
+        // Rename "Shorten The URL" button → "Shorten" + icon
         var addBtn = document.getElementById('add-button');
-        if (addBtn) addBtn.value = 'Shorten';
+        if (addBtn) sbEnhanceInputButton(addBtn, 'link', 'Shorten', 'sb-input-btn-wrap--add');
 
         // Normalize the add URL form so CSS grid can make it responsive.
         var newUrlWrap = document.getElementById('new_url');
@@ -981,6 +1020,9 @@
                 if (submitField) {
                     var submitRow = submitField.closest('p, div');
                     if (submitRow) submitRow.classList.add('sb-public-submit-row');
+                    if (submitField.tagName === 'INPUT') {
+                        sbEnhanceInputButton(submitField, 'link', 'Shorten', 'sb-input-btn-wrap--public-submit');
+                    }
                 }
 
                 if (urlField && keywordField) {
@@ -1358,7 +1400,16 @@
             filterOptions.appendChild(optionsGrid);
             if (advancedGrid.childNodes.length) filterOptions.appendChild(advancedSection);
             filterOptions.appendChild(actionsBar);
+
+            if (filterButtons) {
+                var searchBtn = filterButtons.querySelector('#submit-sort');
+                var clearBtn = filterButtons.querySelector('#submit-clear-filter');
+                if (searchBtn) sbEnhanceInputButton(searchBtn, 'search');
+                if (clearBtn) sbEnhanceInputButton(clearBtn, 'filter_alt_off');
+            }
         }
+
+        sbEnhanceDialogButtons(document);
 
         // 5b. Merge "Display X to Y of Z URLs." + "Overall, tracking..." onto one line.
         var overallP = document.getElementById('overall_tracking');
