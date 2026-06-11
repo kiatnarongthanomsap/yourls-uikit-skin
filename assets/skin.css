@@ -517,8 +517,8 @@ ul#admin_menu_logout_link {
 }
 
 @media (max-width: 768px) {
-  .sb-dashboard-header,
-  .sb-dashboard-page {
+  #wrap > .sb-dashboard-header,
+  #wrap > .sb-dashboard-page {
     width: min(100% - 32px, 1320px) !important;
   }
 
@@ -612,7 +612,7 @@ main > h2 {
 /* ---------- Settings page ---------- */
 
 .sb-settings-page {
-  width: min(1320px, calc(100% - 96px)) !important;
+  width: min(100%, 1320px) !important;
   max-width: 1320px !important;
   margin: 26px auto 0 !important;
   padding: 0 !important;
@@ -893,9 +893,9 @@ body.sb-plugins-readonly #main_table td.actions a {
 
 /* ---------- Stat tiles ---------- */
 
-.sb-dashboard-header,
-.sb-dashboard-page {
-  width: min(1320px, calc(100% - 96px)) !important;
+#wrap > .sb-dashboard-header,
+#wrap > .sb-dashboard-page {
+  width: min(100%, 1320px) !important;
   max-width: 1320px !important;
   margin-left: auto !important;
   margin-right: auto !important;
@@ -904,7 +904,7 @@ body.sb-plugins-readonly #main_table td.actions a {
   box-sizing: border-box;
 }
 
-.sb-dashboard-header {
+#wrap > .sb-dashboard-header {
   margin-top: 26px !important;
   padding: 0 2px !important;
 }
@@ -1883,13 +1883,6 @@ table#main_table td.ip {
 
 /* ---------- Plugin list page ---------- */
 
-body.sb-plugins-page #wrap > main,
-body.sb-plugins-page > main {
-  width: min(1320px, calc(100% - 96px));
-  margin: 0 auto !important;
-  padding: 34px 0 !important;
-}
-
 body.sb-plugins-page .sb-page-title,
 body.sb-plugins-page .sb-page-header h2,
 body.sb-plugins-page #wrap h2,
@@ -2041,12 +2034,6 @@ tr.active td {
 }
 
 @media (max-width: 900px) {
-  body.sb-plugins-page #wrap > main,
-  body.sb-plugins-page > main {
-    width: min(100% - 32px, 1480px);
-    padding-top: 24px !important;
-  }
-
   table#plugins_table,
   table.tblSorter {
     min-width: 920px;
@@ -4642,16 +4629,34 @@ body:not(.public-site):not(.login) #main_table td.sb-col-user {
 
 /* ---------- Secondary admin pages polish ---------- */
 
-body.sb-tools-page #wrap > main,
-body.sb-tools-page > main,
 body.sb-plugins-page #wrap > main,
 body.sb-plugins-page > main,
-body.sb-settings-admin-page #wrap > main,
-body.sb-settings-admin-page > main {
-  width: min(1320px, calc(100% - 96px)) !important;
+body.sb-tools-page #wrap > main,
+body.sb-tools-page > main {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 18px 32px 28px !important;
+  box-sizing: border-box;
+}
+
+body.sb-tools-page main.sub_wrap {
+  max-width: none !important;
+  width: 100% !important;
+  text-align: left !important;
+  padding-bottom: 0 !important;
+}
+
+body.sb-plugins-page #wrap > main > :not(script):not(style),
+body.sb-tools-page #wrap > main > :not(script):not(style),
+body.sb-dashboard-admin-page #wrap > .sb-dashboard-header,
+body.sb-dashboard-admin-page #wrap > .sb-dashboard-page,
+body.sb-settings-admin-page #wrap > .sb-settings-page {
+  width: min(calc(100% - 64px), 1320px) !important;
   max-width: 1320px !important;
-  margin: 0 auto !important;
-  padding: 28px 0 34px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box;
 }
 
 body.sb-tools-page .sb-page-header h2,
@@ -4893,12 +4898,14 @@ body.sb-settings-admin-page .sb-settings-header .sb-page-title {
   body.sb-tools-page #wrap > main,
   body.sb-tools-page > main,
   body.sb-plugins-page #wrap > main,
-  body.sb-plugins-page > main,
-  body.sb-settings-admin-page #wrap > main,
-  body.sb-settings-admin-page > main,
-  .sb-settings-page {
-    width: min(100% - 32px, 1320px) !important;
-    padding-top: 24px !important;
+  body.sb-plugins-page > main {
+    padding: 24px 16px 28px !important;
+  }
+
+  body.sb-dashboard-admin-page #wrap > .sb-dashboard-header,
+  body.sb-dashboard-admin-page #wrap > .sb-dashboard-page,
+  body.sb-settings-admin-page #wrap > .sb-settings-page {
+    width: min(calc(100% - 32px), 1320px) !important;
   }
 
   body.sb-tools-page table,

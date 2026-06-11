@@ -169,6 +169,9 @@
         if (/\/plugins\.php$/.test(window.location.pathname) && /[?&]page=uikit_skin_settings(?:&|$)/.test(window.location.search)) {
             document.body.classList.add('sb-settings-admin-page');
         }
+        if (/\/plugins\.php$/.test(window.location.pathname) && /[?&]page=uikit_skin_dashboard(?:&|$)/.test(window.location.search)) {
+            document.body.classList.add('sb-dashboard-admin-page');
+        }
 
         // 1. Tag the main table cells with semantic classes if YOURLS didn't.
         //    YOURLS already uses .keyword, .url, .clicks, .timestamp, .actions

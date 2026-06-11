@@ -3,7 +3,7 @@
 Plugin Name: YOURLS UI Kit Template
 Plugin URI: https://github.com/uglyeoin/yourls-ui-kit-template
 Description: A modern admin skin for YOURLS built on UIkit 3. Drop-in replacement for the dated default look. Re-skins the existing admin pages, adds a fresh dashboard, and tidies up forms, tables and error screens — all via hooks, no core files touched.
-Version: 1.0.155
+Version: 1.0.158
 Author: Square Balloon Ltd
 Author URI: https://squareballoon.co.uk
 */
@@ -33,7 +33,7 @@ function yourls_ui_kit_template_head() {
 }
 
 function yourls_ui_kit_template_version() {
-    return '1.0.155';
+    return '1.0.158';
 }
 
 function yourls_ui_kit_settings_managers() {
@@ -123,6 +123,28 @@ function yourls_ui_kit_template_html_title( $title, $context ) {
 // original via CSS. That's what skin.css does (#wrap > h1 { display:none }).
 
 yourls_add_action( 'html_logo', 'yourls_ui_kit_template_navbar' );
+yourls_add_filter( 'bodyclass', 'yourls_ui_kit_template_bodyclass' );
+
+function yourls_ui_kit_template_bodyclass( $classes ) {
+    if ( !yourls_is_admin() ) {
+        return $classes;
+    }
+
+    $script = isset( $_SERVER['SCRIPT_NAME'] ) ? basename( $_SERVER['SCRIPT_NAME'] ) : '';
+    $page   = isset( $_GET['page'] ) ? $_GET['page'] : '';
+
+    if ( $script === 'plugins.php' && $page === 'uikit_skin_dashboard' ) {
+        $classes .= ' sb-dashboard-admin-page';
+    } elseif ( $script === 'plugins.php' && $page === 'uikit_skin_settings' ) {
+        $classes .= ' sb-settings-admin-page';
+    } elseif ( $script === 'plugins.php' && $page === '' ) {
+        $classes .= ' sb-plugins-page';
+    } elseif ( $script === 'tools.php' ) {
+        $classes .= ' sb-tools-page';
+    }
+
+    return $classes;
+}
 
 function yourls_ui_kit_template_logout_url() {
     return yourls_nonce_url(
