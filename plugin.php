@@ -3,7 +3,7 @@
 Plugin Name: YOURLS UI Kit Template
 Plugin URI: https://github.com/uglyeoin/yourls-ui-kit-template
 Description: A modern admin skin for YOURLS built on UIkit 3. Drop-in replacement for the dated default look. Re-skins the existing admin pages, adds a fresh dashboard, and tidies up forms, tables and error screens — all via hooks, no core files touched.
-Version: 1.0.112
+Version: 1.0.118
 Author: Square Balloon Ltd
 Author URI: https://squareballoon.co.uk
 */
@@ -31,7 +31,20 @@ function yourls_ui_kit_template_head() {
 }
 
 function yourls_ui_kit_template_version() {
-    return '1.0.112';
+    return '1.0.118';
+}
+
+yourls_add_filter( 'html_title', 'yourls_ui_kit_template_html_title', 10, 2 );
+
+function yourls_ui_kit_template_html_title( $title, $context ) {
+    $plain_title = html_entity_decode( strip_tags( $title ), ENT_QUOTES, 'UTF-8' );
+    $plain_title = preg_replace( '/\s+/', ' ', trim( $plain_title ) );
+
+    if ( stripos( $plain_title, 'gokuscc' ) === 0 ) {
+        return htmlspecialchars( $plain_title, ENT_QUOTES, 'UTF-8' );
+    }
+
+    return 'gokuscc ' . htmlspecialchars( $plain_title, ENT_QUOTES, 'UTF-8' );
 }
 
 /* ------------------------------------------------------------------
@@ -126,29 +139,10 @@ function yourls_ui_kit_template_navbar() {
               </div>
             </details>
           </li>
-          <li class="uk-hidden@s">
-            <a href="#" uk-toggle="target: #sb-mobile-menu"><span uk-icon="icon: menu"></span></a>
-          </li>
         </ul>
       </div>
       </div>
     </nav>
-
-    <!-- Mobile offcanvas menu -->
-    <div id="sb-mobile-menu" uk-offcanvas="overlay: true">
-      <div class="uk-offcanvas-bar">
-        <button class="uk-offcanvas-close" type="button" uk-close></button>
-        <h3>Menu</h3>
-        <ul class="uk-nav uk-nav-default">
-          <li><a href="<?php echo $dashboard_url; ?>"><span uk-icon="icon: home"></span> Dashboard</a></li>
-          <li><a href="<?php echo yourls_admin_url('index.php'); ?>"><span uk-icon="icon: link"></span> Links</a></li>
-          <li><a href="<?php echo yourls_admin_url('tools.php'); ?>"><span uk-icon="icon: cog"></span> Tools</a></li>
-          <li><a href="<?php echo yourls_admin_url('plugins.php'); ?>"><span uk-icon="icon: database"></span> Plugins</a></li>
-          <li class="uk-nav-divider"></li>
-          <li><a href="<?php echo $logout_url; ?>"><span uk-icon="icon: sign-out"></span> Logout</a></li>
-        </ul>
-      </div>
-    </div>
     <?php
 }
 
@@ -183,15 +177,16 @@ function yourls_ui_kit_set_timezone() {
 }
 
 yourls_add_filter( 'shunt_add_new_link', 'yourls_ui_kit_block_reserved_keyword', 10, 4 );
+yourls_add_filter( 'shunt_edit_link', 'yourls_ui_kit_block_reserved_edit_keyword', 10, 6 );
 yourls_add_filter( 'keyword_is_reserved', 'yourls_ui_kit_mark_reserved_keyword', 10, 2 );
 
 function yourls_ui_kit_is_reserved_keyword( $keyword ) {
     $keyword = function_exists( 'yourls_sanitize_keyword' ) ? yourls_sanitize_keyword( $keyword ) : trim( (string) $keyword );
-    return strtolower( $keyword ) === 'kuscc';
+    return strpos( strtolower( $keyword ), 'kuscc' ) !== false;
 }
 
 function yourls_ui_kit_reserved_keyword_message() {
-    return 'The custom short URL "kuscc" is reserved because it duplicates the hosting name.';
+    return 'Custom short URLs cannot contain "kuscc" because it duplicates the hosting name.';
 }
 
 function yourls_ui_kit_block_reserved_keyword( $pre, $url = '', $keyword = '', $title = '' ) {
@@ -208,6 +203,20 @@ function yourls_ui_kit_block_reserved_keyword( $pre, $url = '', $keyword = '', $
         'url'        => $url,
         'keyword'    => $keyword,
         'title'      => $title,
+    );
+}
+
+function yourls_ui_kit_block_reserved_edit_keyword( $pre, $keyword = '', $url = '', $oldkeyword = '', $newkeyword = '', $title = '' ) {
+    if ( !yourls_ui_kit_is_reserved_keyword( $newkeyword ) ) {
+        return $pre;
+    }
+
+    return array(
+        'status'     => 'fail',
+        'code'       => 'error:keyword',
+        'message'    => yourls_ui_kit_reserved_keyword_message(),
+        'errorCode'  => 400,
+        'statusCode' => 400,
     );
 }
 

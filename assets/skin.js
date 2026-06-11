@@ -260,9 +260,10 @@
         if (addBtn) addBtn.value = 'Shorten';
 
         // Normalize the add URL form so CSS grid can make it responsive.
-        var newUrlForm = document.getElementById('new_url');
-        if (newUrlForm) {
-            newUrlForm.querySelectorAll('p').forEach(function (p) {
+        var newUrlWrap = document.getElementById('new_url');
+        var newUrlForm = document.getElementById('new_url_form');
+        if (newUrlWrap) {
+            newUrlWrap.querySelectorAll('p').forEach(function (p) {
                 Array.prototype.slice.call(p.childNodes).forEach(function (node) {
                     if (node.nodeType === 3 && node.textContent.trim() === ':') {
                         node.parentNode.removeChild(node);
@@ -279,25 +280,46 @@
         var RESERVED_KEYWORDS = ['kuscc'];
 
         function isReservedKeyword(value) {
-            return RESERVED_KEYWORDS.indexOf((value || '').trim().toLowerCase()) !== -1;
+            value = (value || '').trim().toLowerCase();
+            return RESERVED_KEYWORDS.some(function (keyword) {
+                return value.indexOf(keyword) !== -1;
+            });
         }
 
-        var reservedMessage = 'The custom short URL "kuscc" is reserved because it duplicates the hosting name.';
+        var reservedMessage = 'Custom short URLs cannot contain "kuscc" because it duplicates the hosting name.';
+
+        function showReservedKeywordMessage() {
+            if (typeof window.feedback === 'function') {
+                window.feedback(reservedMessage, 'fail', 10000);
+            } else if (typeof showToast === 'function') {
+                showToast(reservedMessage, 'fail');
+            }
+
+            if (!kwInput) return;
+            kwInput.classList.add('sb-input-error');
+            kwInput.focus();
+        }
+
+        function clearReservedKeywordMessage() {
+            if (kwInput) kwInput.classList.remove('sb-input-error');
+        }
 
         function refreshReservedKeywordState() {
             if (!kwInput) return false;
             var reserved = isReservedKeyword(kwInput.value);
             kwInput.setCustomValidity(reserved ? reservedMessage : '');
-            if (addBtn) addBtn.disabled = reserved;
+            if (!reserved) clearReservedKeywordMessage();
             return reserved;
         }
 
-        function stopReservedKeywordAction(event) {
+        function stopReservedKeywordAction(event, showMessage) {
             if (!refreshReservedKeywordState()) return false;
-            if (kwInput) kwInput.reportValidity();
-            event.preventDefault();
-            event.stopPropagation();
-            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+            if (showMessage !== false) showReservedKeywordMessage();
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+            }
             return true;
         }
 
@@ -312,6 +334,30 @@
 
         if (addBtn && kwInput) {
             addBtn.addEventListener('click', stopReservedKeywordAction, true);
+        }
+
+        function wrapAddLinkForReservedKeywords() {
+            if (typeof window.add_link !== 'function' || window.add_link.sbReservedWrapped) {
+                return typeof window.add_link === 'function';
+            }
+
+            var originalAddLink = window.add_link;
+            window.add_link = function () {
+                if (stopReservedKeywordAction(null, true)) return false;
+                return originalAddLink.apply(this, arguments);
+            };
+            window.add_link.sbReservedWrapped = true;
+            return true;
+        }
+
+        if (!wrapAddLinkForReservedKeywords()) {
+            var addLinkWrapAttempts = 0;
+            var addLinkWrapTimer = setInterval(function () {
+                addLinkWrapAttempts++;
+                if (wrapAddLinkForReservedKeywords() || addLinkWrapAttempts > 30) {
+                    clearInterval(addLinkWrapTimer);
+                }
+            }, 100);
         }
 
         function setActionIcon(link, iconSvg) {
@@ -1066,7 +1112,7 @@
         function showToast(msg, color) {
             var t = document.createElement('div');
             t.textContent = msg;
-            t.className = 'sb-toast';
+            t.className = 'sb-toast' + (color === 'fail' || color === 'error' ? ' sb-toast-error' : '');
             document.body.appendChild(t);
             setTimeout(function () {
                 t.style.opacity = '0';
