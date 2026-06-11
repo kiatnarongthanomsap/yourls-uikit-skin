@@ -3,7 +3,7 @@
 Plugin Name: YOURLS UI Kit Template
 Plugin URI: https://github.com/uglyeoin/yourls-ui-kit-template
 Description: A modern admin skin for YOURLS built on UIkit 3. Drop-in replacement for the dated default look. Re-skins the existing admin pages, adds a fresh dashboard, and tidies up forms, tables and error screens — all via hooks, no core files touched.
-Version: 1.0.146
+Version: 1.0.155
 Author: Square Balloon Ltd
 Author URI: https://squareballoon.co.uk
 */
@@ -33,7 +33,62 @@ function yourls_ui_kit_template_head() {
 }
 
 function yourls_ui_kit_template_version() {
-    return '1.0.146';
+    return '1.0.155';
+}
+
+function yourls_ui_kit_settings_managers() {
+    return array( 'kt', 'maprang', 'samai', 'tull' );
+}
+
+function yourls_ui_kit_settings_managers_label() {
+    $labels = array();
+    foreach ( yourls_ui_kit_settings_managers() as $manager ) {
+        $labels[] = '<strong>' . htmlspecialchars( (string) $manager, ENT_QUOTES, 'UTF-8' ) . '</strong>';
+    }
+    return implode( ', ', $labels );
+}
+
+function yourls_ui_kit_can_manage_settings() {
+    if ( !defined( 'YOURLS_USER' ) || !YOURLS_USER ) {
+        return false;
+    }
+
+    $user = strtolower( (string) YOURLS_USER );
+    foreach ( yourls_ui_kit_settings_managers() as $manager ) {
+        if ( $user === strtolower( (string) $manager ) ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function yourls_ui_kit_is_plugins_manage_request() {
+    $script = isset( $_SERVER['SCRIPT_NAME'] ) ? basename( $_SERVER['SCRIPT_NAME'] ) : '';
+    if ( $script !== 'plugins.php' ) {
+        return false;
+    }
+    if ( !empty( $_GET['page'] ) ) {
+        return false;
+    }
+
+    $action = isset( $_GET['action'] ) ? $_GET['action'] : '';
+    return in_array( $action, array( 'activate', 'deactivate' ), true );
+}
+
+yourls_add_action( 'auth_successful', 'yourls_ui_kit_restrict_plugin_management', 1 );
+
+function yourls_ui_kit_restrict_plugin_management() {
+    if ( !yourls_ui_kit_is_plugins_manage_request() ) {
+        return;
+    }
+    if ( yourls_ui_kit_can_manage_settings() ) {
+        return;
+    }
+
+    yourls_add_notice( 'เฉพาะผู้ใช้ ' . yourls_ui_kit_settings_managers_label() . ' เท่านั้นที่สามารถจัดการปลั๊กอินได้' );
+    yourls_redirect( yourls_admin_url( 'plugins.php' ), 302 );
+    exit();
 }
 
 function yourls_ui_kit_icon( $name, $class = '', $size = 0 ) {
@@ -302,12 +357,12 @@ function yourls_ui_kit_template_dashboard_page() {
 
     $avg = $total_links > 0 ? round( $total_clicks / $total_links, 1 ) : 0;
     ?>
-    <div class="uk-container sb-dashboard-header">
+    <div class="sb-dashboard-header">
       <h2 class="sb-page-title">Dashboard</h2>
       <p class="uk-text-muted">A quick overview of your shortener.</p>
     </div>
 
-    <div class="uk-container sb-dashboard-page">
+    <div class="sb-dashboard-page">
       <!-- Stat tiles -->
       <div class="uk-grid-small uk-child-width-1-2 uk-child-width-1-4@m sb-stats" uk-grid>
         <div>
@@ -414,26 +469,46 @@ function yourls_ui_kit_template_dashboard_page() {
 
 function yourls_ui_kit_template_settings_page() {
     $notice = '';
+    $can_save = yourls_ui_kit_can_manage_settings();
 
     // Save settings
     if ( isset($_POST['sb_uikit_save']) ) {
         // This dies on failure with an "Unauthorized" message — perfect.
         yourls_verify_nonce( 'yourls-ui-kit-template_settings' );
 
-        $accent = isset($_POST['sb_accent_color']) ? trim($_POST['sb_accent_color']) : '#1e87f0';
-        // Sanitise: must be a hex colour
-        if ( preg_match('/^#[0-9a-fA-F]{6}$/', $accent) ) {
-            yourls_update_option( 'sb_uikit_accent', $accent );
-            $notice = '<div class="uk-alert-success sb-settings-alert" uk-alert><p>Settings saved.</p></div>';
+        if ( !$can_save ) {
+            $notice = '<div class="uk-alert-danger sb-settings-alert" uk-alert><p>เฉพาะผู้ใช้ ' . yourls_ui_kit_settings_managers_label() . ' เท่านั้นที่สามารถบันทึกการตั้งค่าได้</p></div>';
         } else {
-            $notice = '<div class="uk-alert-danger sb-settings-alert" uk-alert><p>Invalid colour. Use a 6-digit hex code like #1e87f0.</p></div>';
+            $accent = isset($_POST['sb_accent_color']) ? trim($_POST['sb_accent_color']) : '#1e87f0';
+            // Sanitise: must be a hex colour
+            if ( preg_match('/^#[0-9a-fA-F]{6}$/', $accent) ) {
+                yourls_update_option( 'sb_uikit_accent', $accent );
+                $notice = '<div class="uk-alert-success sb-settings-alert" uk-alert><p>บันทึกการตั้งค่าแล้ว</p></div>';
+            } else {
+                $notice = '<div class="uk-alert-danger sb-settings-alert" uk-alert><p>สีไม่ถูกต้อง ใช้รหัส hex 6 หลัก เช่น #1e87f0</p></div>';
+            }
         }
     }
 
     $accent = yourls_get_option( 'sb_uikit_accent', '#1e87f0' );
     $nonce  = yourls_create_nonce( 'yourls-ui-kit-template_settings' );
+    $accent_presets = array(
+        '#1e87f0' => 'น้ำเงิน UIkit',
+        '#127cfe' => 'ฟ้าสด',
+        '#2563eb' => 'น้ำเงินเข้ม',
+        '#0ea5e9' => 'ฟ้าอ่อน',
+        '#0891b2' => 'ฟ้าทะเล',
+        '#10b981' => 'เขียวมรกต',
+        '#059669' => 'เขียว',
+        '#7c3aed' => 'ม่วง',
+        '#6366f1' => 'คราม',
+        '#ea580c' => 'ส้ม',
+        '#dc2626' => 'แดง',
+        '#0f172a' => 'เทาเข้ม',
+    );
+    $accent_lower = strtolower( $accent );
     ?>
-    <div class="uk-container sb-settings-page">
+    <div class="sb-settings-page">
       <div class="sb-settings-header">
         <div>
           <h2 class="sb-page-title">UIkit Skin Settings</h2>
@@ -443,7 +518,13 @@ function yourls_ui_kit_template_settings_page() {
 
       <?php echo $notice; ?>
 
-      <div class="uk-card uk-card-default uk-card-body sb-settings-card">
+      <?php if ( !$can_save ) : ?>
+      <div class="uk-alert-warning sb-settings-alert sb-settings-readonly-notice" uk-alert>
+        <p>เฉพาะผู้ใช้ <?php echo yourls_ui_kit_settings_managers_label(); ?> เท่านั้นที่สามารถบันทึกการตั้งค่าได้ คุณสามารถดูค่าปัจจุบันได้อย่างเดียว</p>
+      </div>
+      <?php endif; ?>
+
+      <div class="uk-card uk-card-default uk-card-body sb-settings-card<?php echo $can_save ? '' : ' sb-settings-card-readonly'; ?>">
         <form method="post" class="uk-form-stacked sb-settings-form">
           <input type="hidden" name="nonce" value="<?php echo $nonce; ?>" />
           <div class="sb-settings-row">
@@ -451,9 +532,32 @@ function yourls_ui_kit_template_settings_page() {
               <label class="uk-form-label" for="sb_accent_color">Accent colour</label>
               <p class="uk-text-meta">Used for primary buttons, active navigation and stat highlights.</p>
             </div>
-            <div class="uk-form-controls sb-colour-controls">
-              <input id="sb_accent_color" class="sb-colour-picker" name="sb_accent_color" type="color" value="<?php echo htmlspecialchars($accent); ?>" />
-              <input type="text" class="uk-input sb-colour-hex" value="<?php echo htmlspecialchars($accent); ?>" id="sb_accent_hex" aria-label="Accent colour hex value" />
+            <div class="uk-form-controls sb-colour-controls-wrap">
+              <div class="sb-colour-controls">
+                <input id="sb_accent_color" class="sb-colour-picker" name="sb_accent_color" type="color" value="<?php echo htmlspecialchars($accent); ?>"<?php echo $can_save ? '' : ' disabled'; ?> />
+                <input type="text" class="uk-input sb-colour-hex" value="<?php echo htmlspecialchars($accent); ?>" id="sb_accent_hex" aria-label="Accent colour hex value"<?php echo $can_save ? '' : ' readonly'; ?> />
+              </div>
+              <div class="sb-colour-chips" role="listbox" aria-label="เลือกสีสำเร็จรูป">
+                <span class="sb-colour-chips-label">สียอดนิยม</span>
+                <div class="sb-colour-chips-row">
+                  <?php foreach ( $accent_presets as $preset_hex => $preset_label ) :
+                    $preset_hex = strtolower( $preset_hex );
+                    $is_active = ( $preset_hex === $accent_lower );
+                  ?>
+                  <button
+                    type="button"
+                    class="sb-colour-chip<?php echo $is_active ? ' is-active' : ''; ?>"
+                    <?php echo $can_save ? '' : 'disabled '; ?>
+                    data-color="<?php echo htmlspecialchars( $preset_hex ); ?>"
+                    style="--chip-color: <?php echo htmlspecialchars( $preset_hex ); ?>"
+                    title="<?php echo htmlspecialchars( $preset_label . ' (' . strtoupper( $preset_hex ) . ')' ); ?>"
+                    aria-label="<?php echo htmlspecialchars( $preset_label ); ?>"
+                    role="option"
+                    aria-selected="<?php echo $is_active ? 'true' : 'false'; ?>"
+                  ></button>
+                  <?php endforeach; ?>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -463,9 +567,11 @@ function yourls_ui_kit_template_settings_page() {
             <strong><?php echo htmlspecialchars($accent); ?></strong>
           </div>
 
+          <?php if ( $can_save ) : ?>
           <div class="sb-settings-actions">
-            <button type="submit" name="sb_uikit_save" value="1" class="uk-button uk-button-primary sb-settings-submit">Save changes</button>
+            <button type="submit" name="sb_uikit_save" value="1" class="uk-button uk-button-primary sb-settings-submit">บันทึก</button>
           </div>
+          <?php endif; ?>
         </form>
       </div>
     </div>
@@ -476,23 +582,52 @@ function yourls_ui_kit_template_settings_page() {
         var hex  = document.getElementById('sb_accent_hex');
         var preview = document.querySelector('.sb-settings-preview');
         var previewValue = preview ? preview.querySelector('strong') : null;
+        var chips = document.querySelectorAll('.sb-colour-chip');
+
+        function updateChipActive(value) {
+          if (!value) return;
+          value = value.toLowerCase();
+          chips.forEach(function (chip) {
+            var match = (chip.getAttribute('data-color') || '').toLowerCase() === value;
+            chip.classList.toggle('is-active', match);
+            chip.setAttribute('aria-selected', match ? 'true' : 'false');
+          });
+        }
+
+        function setAccentColor(value) {
+          if (!pick || !hex || !/^#[0-9a-fA-F]{6}$/i.test(value)) return;
+          value = value.toLowerCase();
+          pick.value = value;
+          hex.value = value;
+          updatePreview(value);
+          updateChipActive(value);
+        }
+
         function updatePreview(value) {
-          if (!preview || !/^#[0-9a-fA-F]{6}$/.test(value)) return;
+          if (!preview || !/^#[0-9a-fA-F]{6}$/i.test(value)) return;
+          value = value.toLowerCase();
           preview.style.setProperty('--sb-preview-accent', value);
           if (previewValue) previewValue.textContent = value;
         }
+
         if (pick && hex) {
-          pick.addEventListener('input', function(){
-            hex.value = pick.value;
-            updatePreview(pick.value);
+          pick.addEventListener('input', function () {
+            setAccentColor(pick.value);
           });
-          hex.addEventListener('input', function(){
-            if (/^#[0-9a-fA-F]{6}$/.test(hex.value)) {
-              pick.value = hex.value;
-              updatePreview(hex.value);
+          hex.addEventListener('input', function () {
+            if (/^#[0-9a-fA-F]{6}$/i.test(hex.value)) {
+              setAccentColor(hex.value);
             }
           });
         }
+
+        chips.forEach(function (chip) {
+          chip.addEventListener('click', function () {
+            setAccentColor(chip.getAttribute('data-color'));
+          });
+        });
+
+        updateChipActive(hex ? hex.value : '');
       });
     </script>
     <?php
@@ -575,5 +710,10 @@ yourls_add_action( 'html_head', 'yourls_ui_kit_template_inline_vars', 6 );
 function yourls_ui_kit_template_inline_vars() {
     $accent = yourls_get_option( 'sb_uikit_accent', '#1e87f0' );
     if ( !preg_match('/^#[0-9a-fA-F]{6}$/', $accent) ) $accent = '#1e87f0';
+    $can_manage = yourls_ui_kit_can_manage_settings() ? 'true' : 'false';
     echo "<style>:root{--sb-accent:" . $accent . ";}</style>\n";
+    echo "<script>window._sbCanManageSettings=" . $can_manage . ";</script>\n";
+    if ( function_exists( 'yourls_get_html_context' ) && yourls_get_html_context() === 'login' && defined( 'YOURLS_VERSION' ) ) {
+        echo '<script>window._yourlsVersion="' . htmlspecialchars( YOURLS_VERSION, ENT_QUOTES, 'UTF-8' ) . '";</script>' . "\n";
+    }
 }

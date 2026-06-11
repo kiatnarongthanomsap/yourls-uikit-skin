@@ -56,6 +56,10 @@
         });
         // Close button
         el.querySelector('#sb-qr-close').addEventListener('click', sbHideQrModal);
+        el.querySelector('#sb-qr-download').addEventListener('click', function (e) {
+            e.preventDefault();
+            sbDownloadQrPng();
+        });
         // Close on Escape
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') sbHideQrModal();
@@ -65,14 +69,73 @@
         return el;
     }
 
+    function sbTriggerFileDownload(blob, filename) {
+        if (!blob) return;
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 0);
+    }
+
+    function sbDownloadQrPng() {
+        var modal = _qrModal;
+        if (!modal) return;
+
+        var img = modal.querySelector('#sb-qr-img');
+        var filename = (modal.dataset.qrKeyword || 'qr') + '-qr.png';
+        var apiUrl = modal.dataset.qrImageUrl || (img ? img.src : '');
+
+        function downloadFromCanvas() {
+            if (!img || !img.complete || !img.naturalWidth) return false;
+            try {
+                var canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                canvas.getContext('2d').drawImage(img, 0, 0);
+                canvas.toBlob(function (blob) {
+                    sbTriggerFileDownload(blob, filename);
+                }, 'image/png');
+                return true;
+            } catch (err) {
+                return false;
+            }
+        }
+
+        if (downloadFromCanvas()) return;
+
+        if (!apiUrl) return;
+        fetch(apiUrl, { mode: 'cors' })
+            .then(function (res) {
+                if (!res.ok) throw new Error('fetch failed');
+                return res.blob();
+            })
+            .then(function (blob) {
+                sbTriggerFileDownload(blob, filename);
+            })
+            .catch(function () {
+                if (!downloadFromCanvas()) {
+                    window.open(apiUrl, '_blank', 'noopener');
+                }
+            });
+    }
+
     function sbShowQrModal(keyword, shortUrl) {
         var modal = sbGetQrModal();
         var apiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=10&data=' + encodeURIComponent(shortUrl);
+        var img = modal.querySelector('#sb-qr-img');
+        modal.dataset.qrKeyword = keyword;
+        modal.dataset.qrImageUrl = apiUrl;
         modal.querySelector('.sb-qr-kw').textContent = keyword;
         modal.querySelector('.sb-qr-url').textContent = shortUrl;
-        modal.querySelector('#sb-qr-img').src = apiUrl;
-        var dl = modal.querySelector('#sb-qr-download');
-        if (dl) { dl.href = apiUrl; dl.setAttribute('download', keyword + '-qr.png'); }
+        if (img) {
+            img.crossOrigin = 'anonymous';
+            img.src = apiUrl;
+        }
         modal.classList.add('sb-qr-modal-open');
         document.body.style.overflow = 'hidden';
     }
@@ -88,9 +151,23 @@
         var isPluginsPage = /\/plugins\.php$/.test(window.location.pathname) && !window.location.search.match(/[?&]page=/);
         if (pluginsTable || isPluginsPage) {
             document.body.classList.add('sb-plugins-page');
+            if (window._sbCanManageSettings === false) {
+                document.body.classList.add('sb-plugins-readonly');
+                document.querySelectorAll('#main_table td.plugin_actions a, #main_table td.actions a').forEach(function (link) {
+                    link.setAttribute('aria-disabled', 'true');
+                    link.setAttribute('tabindex', '-1');
+                    link.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    });
+                });
+            }
         }
         if (/\/tools\.php$/.test(window.location.pathname)) {
             document.body.classList.add('sb-tools-page');
+        }
+        if (/\/plugins\.php$/.test(window.location.pathname) && /[?&]page=uikit_skin_settings(?:&|$)/.test(window.location.search)) {
+            document.body.classList.add('sb-settings-admin-page');
         }
 
         // 1. Tag the main table cells with semantic classes if YOURLS didn't.
@@ -252,18 +329,7 @@
         enhanceOriginalUrlCells();
 
         // 2b. Style action buttons + add QR code button to each row.
-        var BASE_BTN_STYLE = 'display:inline-flex!important;align-items:center;justify-content:center;width:28px;height:28px;border-radius:5px;border:none;background:transparent;color:#6b7280;padding:0;margin:1px;text-decoration:none;transition:color .15s,background .15s;vertical-align:middle;box-sizing:border-box;';
-
-        function applyBtnHover(el, hoverColor) {
-            el.addEventListener('mouseenter', function () {
-                el.style.color = hoverColor;
-                el.style.background = hoverColor === '#ef4444' ? 'rgba(239,68,68,.08)' : 'rgba(30,135,240,.08)';
-            });
-            el.addEventListener('mouseleave', function () {
-                el.style.color = '#6b7280';
-                el.style.background = 'transparent';
-            });
-        }
+        var BASE_BTN_STYLE = 'display:inline-flex!important;align-items:center;justify-content:center;width:28px;height:28px;border-radius:5px;border:none;background:transparent;color:#6b7280;padding:0;margin:1px;text-decoration:none;vertical-align:middle;box-sizing:border-box;';
 
         // Clean up "Optional : Custom short URL" label → "Custom short URL"
         var kwLabel = document.querySelector('label[for="add-keyword"]');
@@ -545,16 +611,13 @@
                     }
                     if (type === 'edit') {
                         setActionIcon(a, ICON_EDIT);
-                        applyBtnHover(a, 'var(--sb-accent,#1e87f0)');
                         ordered.edit = a;
                     } else if (type === 'delete') {
                         setActionIcon(a, ICON_DELETE);
-                        applyBtnHover(a, '#ef4444');
                         ordered.delete = a;
                     } else if (type === 'share') {
                         setActionIcon(a, ICON_SHARE);
                         attachShareCopyHandler(a, tr);
-                        applyBtnHover(a, 'var(--sb-accent,#1e87f0)');
                         ordered.share = a;
                     }
                 });
@@ -565,7 +628,6 @@
                     qrBtn.className = 'sb-qr-btn';
                     qrBtn.title = 'QR Code';
                     setActionIcon(qrBtn, ICON_QR);
-                    applyBtnHover(qrBtn, 'var(--sb-accent,#1e87f0)');
                     qrBtn.addEventListener('click', function (e) {
                         e.preventDefault();
                         sbShowQrModal(keyword, shortUrl);
@@ -736,20 +798,23 @@
 
             var loginFooter = document.getElementById('footer');
             if (!loginFooter) {
-                loginFooter = document.createElement('div');
+                loginFooter = document.createElement('footer');
                 loginFooter.id = 'footer';
+                loginFooter.setAttribute('role', 'contentinfo');
             }
             loginFooter.classList.add('sb-login-footer');
-            loginFooter.innerHTML = [
-                '<p>',
-                '  <span>Powered by</span>',
-                '  <a href="https://yourls.org/" rel="noopener" target="_blank" aria-label="YOURLS">',
-                '    ' + sbIconHtml('link', 'sb-login-footer-icon', 18),
-                '    <span>YOURLS v 1.10.4</span>',
-                '  </a>',
-                '</p>'
-            ].join('');
-            document.body.appendChild(loginFooter);
+            var yourlsVersion = window._yourlsVersion || '';
+            if (!yourlsVersion) {
+                var generatorMeta = document.querySelector('meta[name="generator"]');
+                var generatorMatch = generatorMeta
+                    ? (generatorMeta.getAttribute('content') || '').match(/YOURLS\s+([\d.]+)/i)
+                    : null;
+                yourlsVersion = generatorMatch ? generatorMatch[1] : '';
+            }
+            loginFooter.innerHTML = '<p>Powered by <a href="http://yourls.org/" title="YOURLS">YOURLS</a> v ' + yourlsVersion + '</p>';
+            if (!loginFooter.parentNode) {
+                document.body.appendChild(loginFooter);
+            }
 
         }
 
@@ -1913,7 +1978,7 @@
             document.head.appendChild(s);
         }());
 
-        // 7. Wrap the page h2 + optional description paragraph in uk-container.
+        // 7. Wrap the page h2 + optional description paragraph (no uk-container — keeps alignment with tables).
         var mainEl = document.querySelector('#wrap > main, body > main');
         if (mainEl) {
             var children = mainEl.children;
@@ -1923,7 +1988,7 @@
             }
             if (pageH2) {
                 var wrap = document.createElement('div');
-                wrap.className = 'uk-container sb-page-header';
+                wrap.className = 'sb-page-header';
                 pageH2.parentNode.insertBefore(wrap, pageH2);
                 wrap.appendChild(pageH2);
                 var next = wrap.nextElementSibling;
