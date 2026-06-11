@@ -68,6 +68,9 @@
         if (pluginsTable || isPluginsPage) {
             document.body.classList.add('sb-plugins-page');
         }
+        if (/\/tools\.php$/.test(window.location.pathname)) {
+            document.body.classList.add('sb-tools-page');
+        }
 
         // 1. Tag the main table cells with semantic classes if YOURLS didn't.
         //    YOURLS already uses .keyword, .url, .clicks, .timestamp, .actions
@@ -550,7 +553,12 @@
                 if (!td) {
                     td = document.createElement('td');
                     td.className = 'sb-col-user';
-                    tr.appendChild(td);
+                    var actionsCell = tr.querySelector('td.actions');
+                    if (actionsCell && actionsCell.parentNode === tr) {
+                        tr.insertBefore(td, actionsCell);
+                    } else {
+                        tr.appendChild(td);
+                    }
                 }
 
                 var keywordLink = tr.querySelector('td.keyword a');
@@ -573,13 +581,18 @@
             var table = document.getElementById('main_table');
             if (!table) return;
 
-            // Add <th> after ACTIONS header
+            // Add USER before ACTIONS so Actions stays the last column.
             var headerRow = table.querySelector('thead tr');
             if (headerRow) {
                 var th = document.createElement('th');
                 th.textContent = 'User';
                 th.className = 'sb-col-user';
-                headerRow.appendChild(th);
+                var actionsTh = headerRow.querySelector('th.actions');
+                if (actionsTh && actionsTh.parentNode === headerRow) {
+                    headerRow.insertBefore(th, actionsTh);
+                } else {
+                    headerRow.appendChild(th);
+                }
             }
 
             table.querySelectorAll('tbody tr').forEach(function (tr) {
@@ -655,6 +668,27 @@
                 subtitle.textContent = loginTitleText;
                 loginLogo.insertAdjacentElement('afterend', subtitle);
             }
+
+            var loginFooter = document.getElementById('footer');
+            if (!loginFooter) {
+                loginFooter = document.createElement('div');
+                loginFooter.id = 'footer';
+            }
+            loginFooter.classList.add('sb-login-footer');
+            loginFooter.innerHTML = [
+                '<p>',
+                '  <span>Powered by</span>',
+                '  <a href="https://yourls.org/" rel="noopener" target="_blank" aria-label="YOURLS">',
+                '    <svg class="sb-login-footer-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">',
+                '      <path d="M10 7H8a5 5 0 0 0 0 10h2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>',
+                '      <path d="M14 7h2a5 5 0 0 1 0 10h-2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>',
+                '      <path d="M8.5 12h7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>',
+                '    </svg>',
+                '    <span>YOURLS v 1.10.4</span>',
+                '  </a>',
+                '</p>'
+            ].join('');
+            document.body.appendChild(loginFooter);
 
         }
 
@@ -931,6 +965,34 @@
                 filterOptions.removeChild(filterOptions.firstChild);
             }
             rows.forEach(function (row) { filterOptions.appendChild(row); });
+        }
+
+        var perPageInput = filterOptions ? filterOptions.querySelector('input[name="perpage"]') : null;
+        if (perPageInput && !perPageInput.dataset.sbPerpageDone) {
+            var perPageSelect = document.createElement('select');
+            perPageSelect.name = perPageInput.name;
+            perPageSelect.id = perPageInput.id || 'perpage';
+            perPageSelect.className = perPageInput.className;
+            perPageSelect.dataset.sbPerpageDone = '1';
+
+            var currentPerPage = String(perPageInput.value || '15');
+            ['15', '25', '50', '100'].forEach(function (value) {
+                var option = document.createElement('option');
+                option.value = value;
+                option.textContent = value;
+                if (value === currentPerPage) option.selected = true;
+                perPageSelect.appendChild(option);
+            });
+
+            if (!perPageSelect.value) {
+                var customOption = document.createElement('option');
+                customOption.value = currentPerPage;
+                customOption.textContent = currentPerPage;
+                customOption.selected = true;
+                perPageSelect.insertBefore(customOption, perPageSelect.firstChild);
+            }
+
+            perPageInput.parentNode.replaceChild(perPageSelect, perPageInput);
         }
 
         // 5b. Merge "Display X to Y of Z URLs." + "Overall, tracking..." onto one line.
