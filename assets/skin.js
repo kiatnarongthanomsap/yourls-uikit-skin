@@ -664,7 +664,112 @@
         if (document.body && publicForm && hasBookmarklets && !document.body.classList.contains('login')) {
             document.body.classList.add('public-site');
             var shortenForm = publicForm.closest('form');
-            if (shortenForm) shortenForm.classList.add('sb-public-form');
+            if (shortenForm) {
+                shortenForm.classList.add('sb-public-form');
+
+                var urlField = shortenForm.querySelector('input[name="url"], input#url, input#add-url');
+                var keywordField = shortenForm.querySelector('input[name="keyword"], input#keyword, input#add-keyword');
+                var titleField = shortenForm.querySelector('input[name="title"], input#title, input#add-title');
+                var submitField = shortenForm.querySelector('input[type="submit"], button[type="submit"]');
+
+                if (urlField) {
+                    urlField.placeholder = 'https://';
+                    if (urlField.value.trim() === 'http://') urlField.value = 'https://';
+                    var urlRow = urlField.closest('p, div');
+                    if (urlRow) urlRow.classList.add('sb-public-url-row');
+                }
+                if (keywordField) {
+                    var keywordRow = keywordField.closest('p, div');
+                    if (keywordRow) keywordRow.classList.add('sb-public-keyword-row');
+                    keywordField.removeAttribute('size');
+                }
+                if (titleField) {
+                    var titleRow = titleField.closest('p, div');
+                    if (titleRow) titleRow.classList.add('sb-public-title-row');
+                    titleField.removeAttribute('size');
+                }
+                if (submitField) {
+                    var submitRow = submitField.closest('p, div');
+                    if (submitRow) submitRow.classList.add('sb-public-submit-row');
+                }
+
+                if (urlField && keywordField) {
+                    var publicKeywordTouched = keywordField.value.trim().length > 0;
+                    var publicSuggestTimer = null;
+
+                    function publicCleanKeywordPart(value) {
+                        if (!value) return '';
+                        try { value = decodeURIComponent(value.replace(/\+/g, ' ')); } catch (e) {}
+                        if (value.normalize) value = value.normalize('NFKD');
+                        value = value
+                            .toLowerCase()
+                            .replace(/[\u0300-\u036f]/g, '')
+                            .replace(/\.[a-z0-9]+$/i, '')
+                            .replace(/[^a-z0-9]+/g, ' ')
+                            .trim();
+
+                        return value.split(/\s+/).filter(function (word) {
+                            return word.length > 2 && !/^\d+$/.test(word) && ['http', 'https', 'www', 'go', 'link', 'links', 'index', 'home', 'kuscc'].indexOf(word) === -1;
+                        }).slice(0, 4).join('');
+                    }
+
+                    function publicHash(value) {
+                        var hash = 0;
+                        for (var i = 0; i < value.length; i++) {
+                            hash = ((hash << 5) - hash) + value.charCodeAt(i);
+                            hash |= 0;
+                        }
+                        return Math.abs(hash).toString(36).substring(0, 4);
+                    }
+
+                    function publicParseUrl(value) {
+                        value = value.trim();
+                        if (!value) return null;
+                        try {
+                            return new URL(value);
+                        } catch (e) {
+                            try { return new URL('https://' + value.replace(/^\/+/, '')); } catch (err) {}
+                        }
+                        return null;
+                    }
+
+                    function publicSuggestKeyword(value) {
+                        var parsed = publicParseUrl(value);
+                        if (!parsed) return '';
+
+                        var segments = parsed.pathname.replace(/^\/|\/$/g, '').split('/').filter(Boolean);
+                        for (var i = segments.length - 1; i >= 0; i--) {
+                            var fromPath = publicCleanKeywordPart(segments[i]);
+                            if (fromPath && fromPath.length >= 4) return fromPath.substring(0, 20);
+                        }
+
+                        var fromTitle = publicCleanKeywordPart(parsed.searchParams.get('title') || parsed.searchParams.get('name') || parsed.searchParams.get('q') || '');
+                        if (fromTitle && fromTitle.length >= 4) return fromTitle.substring(0, 20);
+
+                        var fromHost = publicCleanKeywordPart(parsed.hostname.replace(/^www\./, '').split('.')[0]);
+                        if (!fromHost) fromHost = 'link';
+                        return (fromHost.substring(0, 14) + publicHash(value)).substring(0, 20);
+                    }
+
+                    function publicApplySuggestion(force) {
+                        if (publicKeywordTouched && !force) return;
+                        var suggestion = publicSuggestKeyword(urlField.value);
+                        if (!suggestion) return;
+                        keywordField.value = suggestion;
+                        keywordField.classList.add('sb-kw-suggested');
+                        setTimeout(function () { keywordField.classList.remove('sb-kw-suggested'); }, 900);
+                    }
+
+                    urlField.addEventListener('input', function () {
+                        if (publicSuggestTimer) clearTimeout(publicSuggestTimer);
+                        publicSuggestTimer = setTimeout(function () { publicApplySuggestion(false); }, 300);
+                    });
+                    urlField.addEventListener('blur', function () { publicApplySuggestion(false); });
+                    keywordField.addEventListener('input', function () {
+                        publicKeywordTouched = keywordField.value.trim().length > 0;
+                    });
+                }
+            }
 
             if (!document.querySelector('.sb-public-admin-link')) {
                 var adminLink = document.createElement('a');
