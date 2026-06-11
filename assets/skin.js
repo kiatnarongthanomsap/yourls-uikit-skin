@@ -661,9 +661,18 @@
         // 4. Tag the stock YOURLS public front page so the skin can lay it out.
         var publicForm = document.querySelector('form input[name="url"]');
         var hasBookmarklets = document.querySelector('a.bookmarklet');
-        if (document.body && publicForm && hasBookmarklets && !document.body.classList.contains('login')) {
+        var publicResultHeading = null;
+        document.querySelectorAll('h1, h2').forEach(function (heading) {
+            var text = heading.textContent.replace(/\s+/g, ' ').trim().toLowerCase();
+            if (!publicResultHeading && text.indexOf('added to database') !== -1) {
+                publicResultHeading = heading;
+            }
+        });
+
+        if (document.body && hasBookmarklets && (publicForm || publicResultHeading) && !document.body.classList.contains('login')) {
             document.body.classList.add('public-site');
-            var shortenForm = publicForm.closest('form');
+            if (publicResultHeading) document.body.classList.add('public-result');
+            var shortenForm = publicForm ? publicForm.closest('form') : null;
             if (shortenForm) {
                 shortenForm.classList.add('sb-public-form');
 
@@ -787,6 +796,8 @@
 
                 if (publicTitle && publicTitle.parentNode) {
                     publicTitle.parentNode.insertBefore(adminLink, publicTitle);
+                } else if (publicResultHeading && publicResultHeading.parentNode) {
+                    publicResultHeading.parentNode.insertBefore(adminLink, publicResultHeading);
                 } else if (shortenForm && shortenForm.parentNode) {
                     shortenForm.parentNode.insertBefore(adminLink, shortenForm);
                 } else {
@@ -798,7 +809,7 @@
                 var text = h2.textContent.trim().toLowerCase();
                 if (text.indexOf('enter a new url') !== -1) h2.classList.add('sb-public-title');
                 if (text.indexOf('bookmarklets') !== -1) {
-                    h2.classList.add('sb-public-section-title');
+                    h2.classList.add('sb-public-section-title', 'sb-bookmarklets-title');
                     var intro = h2.nextElementSibling;
                     var links = intro ? intro.nextElementSibling : null;
                     if (intro) intro.classList.add('sb-bookmarklet-intro');
@@ -809,6 +820,63 @@
                     if (h2.nextElementSibling) h2.nextElementSibling.classList.add('sb-public-note');
                 }
             });
+
+            if (publicResultHeading && !publicResultHeading.dataset.sbResultEnhanced) {
+                publicResultHeading.dataset.sbResultEnhanced = '1';
+                publicResultHeading.classList.add('sb-public-result-title');
+
+                var resultCard = document.createElement('section');
+                resultCard.className = 'sb-public-result-card';
+
+                var icon = document.createElement('div');
+                icon.className = 'sb-public-result-icon';
+                icon.setAttribute('aria-hidden', 'true');
+                icon.textContent = '✓';
+
+                var body = document.createElement('div');
+                body.className = 'sb-public-result-body';
+
+                var label = document.createElement('div');
+                label.className = 'sb-public-result-label';
+                label.textContent = 'Short URL created';
+
+                publicResultHeading.parentNode.insertBefore(resultCard, publicResultHeading);
+                resultCard.appendChild(icon);
+                resultCard.appendChild(body);
+                body.appendChild(label);
+                body.appendChild(publicResultHeading);
+
+                var shortUrlInput = document.getElementById('short_url');
+                var copyLinkInput = document.getElementById('copylink');
+                var shortValue = '';
+                if (shortUrlInput && shortUrlInput.value) shortValue = shortUrlInput.value;
+                else if (copyLinkInput && copyLinkInput.value) shortValue = copyLinkInput.value;
+
+                if (shortValue) {
+                    var actions = document.createElement('div');
+                    actions.className = 'sb-public-result-actions';
+
+                    var openLink = document.createElement('a');
+                    openLink.className = 'sb-public-result-open';
+                    openLink.href = shortValue;
+                    openLink.textContent = 'Open short URL';
+
+                    var copyButton = document.createElement('button');
+                    copyButton.type = 'button';
+                    copyButton.className = 'sb-public-result-copy';
+                    copyButton.textContent = 'Copy';
+                    copyButton.addEventListener('click', function () {
+                        copyTextToClipboard(shortValue, function () {
+                            copyButton.textContent = 'Copied';
+                            setTimeout(function () { copyButton.textContent = 'Copy'; }, 1400);
+                        });
+                    });
+
+                    actions.appendChild(openLink);
+                    actions.appendChild(copyButton);
+                    body.appendChild(actions);
+                }
+            }
         }
 
         // 5. Normalize the YOURLS filter footer into rows for reliable styling.

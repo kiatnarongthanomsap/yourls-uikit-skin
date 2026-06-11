@@ -3130,6 +3130,7 @@ body.public-site ul#admin_menu_logout_link {
 body.public-site .sb-public-title,
 body.public-site .sb-public-admin-link,
 body.public-site .sb-public-form,
+body.public-site .sb-public-result-card,
 body.public-site .sb-public-section-title,
 body.public-site .sb-bookmarklet-intro,
 body.public-site .sb-bookmarklet-list,
@@ -3319,6 +3320,124 @@ body.public-site .sb-public-form input[type="submit"]:hover {
   filter: none;
 }
 
+body.public-site.public-result .sb-public-admin-link {
+  margin-bottom: 18px !important;
+}
+
+body.public-site .sb-public-result-card {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  margin-top: 18px !important;
+  margin-bottom: 34px !important;
+  padding: 24px 28px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.03),
+    0 14px 34px rgba(15, 23, 42, 0.06);
+}
+
+body.public-site .sb-public-result-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+body.public-site .sb-public-result-body {
+  min-width: 0;
+}
+
+body.public-site .sb-public-result-label {
+  margin: 2px 0 6px;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+body.public-site .sb-public-result-title {
+  display: block !important;
+  margin: 0 !important;
+  color: #111827;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+body.public-site .sb-public-result-title a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+body.public-site .sb-public-result-title a:hover {
+  text-decoration: underline;
+}
+
+body.public-site .sb-public-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+body.public-site .sb-public-result-open,
+body.public-site .sb-public-result-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+body.public-site .sb-public-result-open {
+  border: 1px solid #3b82f6;
+  background: #3b82f6;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(59, 130, 246, 0.16);
+}
+
+body.public-site .sb-public-result-open:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+  text-decoration: none;
+}
+
+body.public-site .sb-public-result-copy {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+}
+
+body.public-site .sb-public-result-copy:hover {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
 body.public-site .sb-public-section-title {
   margin-top: 0 !important;
   margin-bottom: 12px !important;
@@ -3369,6 +3488,13 @@ body.public-site a.bookmarklet:hover {
   filter: none;
 }
 
+body.public-site .sb-bookmarklets-title,
+body.public-site .sb-bookmarklet-intro,
+body.public-site .sb-bookmarklet-list,
+body.public-site a.bookmarklet {
+  display: none !important;
+}
+
 body.public-site .sb-note-title {
   margin-top: 0 !important;
 }
@@ -3391,6 +3517,7 @@ body.public-site .sb-public-note {
   body.public-site .sb-public-title,
   body.public-site .sb-public-admin-link,
   body.public-site .sb-public-form,
+  body.public-site .sb-public-result-card,
   body.public-site .sb-public-section-title,
   body.public-site .sb-bookmarklet-intro,
   body.public-site .sb-bookmarklet-list,
@@ -3425,6 +3552,16 @@ body.public-site .sb-public-note {
   body.public-site .sb-public-form .sb-public-keyword-row,
   body.public-site .sb-public-form .sb-public-title-row {
     grid-column: 1 / -1;
+  }
+
+  body.public-site .sb-public-result-card {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 20px;
+  }
+
+  body.public-site .sb-public-result-title {
+    font-size: 19px;
   }
 }
 
