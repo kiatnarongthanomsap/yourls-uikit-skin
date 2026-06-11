@@ -3726,6 +3726,9 @@ pre {
 
 body.public-site {
   min-height: 100vh;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: left !important;
   background: var(--sb-bg) !important;
   color: var(--sb-text);
 }
@@ -3739,17 +3742,14 @@ body.public-site ul#admin_menu_logout_link {
 body.public-site #wrap,
 body.public-site main,
 body.public-site #wrap > main {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
   background: transparent !important;
-}
-
-body.public-site .sb-public-shell,
-body.public-site .sb-public-hero,
-body.public-site .sb-public-form,
-body.public-site .sb-public-result-card,
-body.public-site .sb-public-alert-card {
-  width: min(100% - 48px, 640px);
-  margin-left: auto !important;
-  margin-right: auto !important;
+  text-align: left !important;
   box-sizing: border-box;
 }
 
@@ -3757,6 +3757,9 @@ body.public-site .sb-public-header {
   position: sticky;
   top: 0;
   z-index: 120;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
@@ -3766,12 +3769,27 @@ body.public-site .sb-public-header {
 
 body.public-site .sb-public-header-inner {
   width: min(100% - 48px, 960px);
+  max-width: 960px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   padding: 14px 0;
+  box-sizing: border-box;
+}
+
+body.public-site .sb-public-shell,
+body.public-site .sb-public-hero,
+body.public-site form.sb-public-form,
+body.public-site .sb-public-form,
+body.public-site .sb-public-result-card,
+body.public-site .sb-public-alert-card,
+body.public-site #new_url.sb-public-form {
+  width: min(100% - 48px, 640px) !important;
+  max-width: 640px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
   box-sizing: border-box;
 }
 
@@ -3877,6 +3895,7 @@ body.public-site .sb-public-subtitle {
   line-height: 1.5;
 }
 
+body.public-site form.sb-public-form,
 body.public-site .sb-public-form {
   display: grid;
   grid-template-columns: 1fr;
@@ -3891,10 +3910,6 @@ body.public-site .sb-public-form {
 }
 
 body.public-site #new_url.sb-public-form {
-  width: min(100% - 48px, 640px) !important;
-  max-width: 640px !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
   padding: 24px !important;
   overflow: visible;
 }
@@ -3991,8 +4006,11 @@ body.public-site .sb-public-form input[type="url"] {
 
 body.public-site .sb-public-kw-group input.text,
 body.public-site .sb-public-kw-group input[type="text"] {
-  flex: 1 1 120px;
+  flex: 1 1 0;
   min-width: 0;
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
   border: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
@@ -4050,9 +4068,6 @@ body.public-site .sb-public-result-card {
   display: grid;
   grid-template-columns: 48px minmax(0, 1fr);
   gap: 16px;
-  width: min(100% - 48px, 640px);
-  margin-left: auto !important;
-  margin-right: auto !important;
   align-items: start;
   margin-top: 18px !important;
   margin-bottom: 34px !important;
@@ -4227,39 +4242,81 @@ body.public-site .sb-public-note {
 }
 
 @media (max-width: 760px) {
-  body.public-site .sb-public-header-inner,
+  body.public-site .sb-public-header-inner {
+    width: 100% !important;
+    max-width: none !important;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
   body.public-site .sb-public-shell,
   body.public-site .sb-public-hero,
+  body.public-site form.sb-public-form,
   body.public-site .sb-public-form,
   body.public-site .sb-public-result-card,
-  body.public-site .sb-public-alert-card {
-    width: min(100% - 32px, 640px);
+  body.public-site .sb-public-alert-card,
+  body.public-site #new_url.sb-public-form {
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 
   body.public-site .sb-public-hero {
-    padding: 24px 0 18px;
+    padding: 28px 16px 18px;
   }
 
+  body.public-site form.sb-public-form,
   body.public-site .sb-public-form,
   body.public-site #new_url.sb-public-form {
-    padding: 18px !important;
+    padding: 18px 16px !important;
+    border: 0 !important;
+    border-top: 1px solid var(--sb-border) !important;
+    border-bottom: 1px solid var(--sb-border) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  body.public-site .sb-public-result-card {
+    padding: 20px 16px !important;
+    border: 0 !important;
+    border-top: 1px solid #dbeafe !important;
+    border-bottom: 1px solid #dbeafe !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  body.public-site .sb-public-kw-group {
+    flex-direction: row;
+    align-items: stretch;
+    min-height: 44px;
   }
 
   body.public-site .sb-public-kw-prefix {
-    max-width: 48%;
-    padding: 0 10px;
-    font-size: 11px;
+    flex: 0 1 auto;
+    max-width: 52%;
+    min-height: 44px;
+    padding: 0 8px;
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  body.public-site .sb-public-kw-group input.text,
+  body.public-site .sb-public-kw-group input[type="text"] {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 44px;
+    min-height: 44px;
+    max-height: 44px;
+    padding: 10px 10px;
+    font-size: 14px;
   }
 
   body.public-site .sb-public-form input[type="submit"] {
     width: 100%;
     min-width: 0;
-  }
-
-  body.public-site .sb-public-result-card {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 20px;
   }
 
   body.public-site .sb-public-result-title {
@@ -4268,20 +4325,6 @@ body.public-site .sb-public-note {
 
   body.public-site .sb-public-brand-copy span {
     display: none;
-  }
-}
-
-@media (max-width: 480px) {
-  body.public-site .sb-public-kw-group {
-    flex-direction: column;
-  }
-
-  body.public-site .sb-public-kw-prefix {
-    max-width: none;
-    width: 100%;
-    min-height: 36px;
-    border-right: 0;
-    border-bottom: 1px solid var(--sb-border);
   }
 }
 
