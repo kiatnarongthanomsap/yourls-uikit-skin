@@ -1521,11 +1521,14 @@ table#main_table td.ip {
 
 #main_table tfoot,
 #main_table tfoot tr,
-#main_table tfoot th,
-#filter_form,
-#filter_form form,
-#filter_options {
+#main_table tfoot th {
   overflow: visible !important;
+}
+
+table#main_table tfoot th {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 16px !important;
 }
 
 /* ---------- Pagination / nav_links area ---------- */
@@ -1590,7 +1593,7 @@ table#main_table td.ip {
   width: 100% !important;
   max-width: none !important;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: hidden !important;
   box-shadow: var(--sb-shadow);
 }
 
@@ -1615,6 +1618,7 @@ table#main_table td.ip {
   padding: 16px 20px;
   border-bottom: 1px solid var(--sb-border);
   background: linear-gradient(180deg, #fafbfd 0%, #fff 100%);
+  border-radius: 14px 14px 0 0;
 }
 
 .sb-filter-header-icon {
