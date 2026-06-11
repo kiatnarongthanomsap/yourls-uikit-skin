@@ -3,7 +3,7 @@
 Plugin Name: YOURLS UI Kit Template
 Plugin URI: https://github.com/uglyeoin/yourls-ui-kit-template
 Description: A modern admin skin for YOURLS built on UIkit 3. Drop-in replacement for the dated default look. Re-skins the existing admin pages, adds a fresh dashboard, and tidies up forms, tables and error screens — all via hooks, no core files touched.
-Version: 1.0.139
+Version: 1.0.146
 Author: Square Balloon Ltd
 Author URI: https://squareballoon.co.uk
 */
@@ -24,14 +24,22 @@ function yourls_ui_kit_template_head() {
     ?>
     <link rel="stylesheet" href="<?php echo $plugin_url; ?>/assets/uikit/uikit.min.css" />
     <script src="<?php echo $plugin_url; ?>/assets/uikit/uikit.min.js" defer></script>
-    <script src="<?php echo $plugin_url; ?>/assets/uikit/uikit-icons.min.js" defer></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0" />
     <link rel="stylesheet" href="<?php echo $plugin_url; ?>/assets/skin.css?v=<?php echo yourls_ui_kit_template_version(); ?>" />
     <script src="<?php echo $plugin_url; ?>/assets/skin.js?v=<?php echo yourls_ui_kit_template_version(); ?>" defer></script>
     <?php
 }
 
 function yourls_ui_kit_template_version() {
-    return '1.0.139';
+    return '1.0.146';
+}
+
+function yourls_ui_kit_icon( $name, $class = '', $size = 0 ) {
+    $classes = trim( 'material-symbols-outlined sb-icon ' . $class );
+    $style = $size > 0 ? ' style="font-size:' . (int) $size . 'px"' : '';
+    return '<span class="' . htmlspecialchars( $classes, ENT_QUOTES, 'UTF-8' ) . '" aria-hidden="true"' . $style . '>' . htmlspecialchars( $name, ENT_QUOTES, 'UTF-8' ) . '</span>';
 }
 
 yourls_add_filter( 'html_title', 'yourls_ui_kit_template_html_title', 10, 2 );
@@ -89,26 +97,26 @@ function yourls_ui_kit_template_navbar() {
       <div class="uk-navbar-container sb-navbar-inner" uk-navbar="mode: click">
       <div class="uk-navbar-left sb-navbar-brand">
         <a class="uk-navbar-item uk-logo sb-logo" href="<?php echo $admin; ?>">
-          <span uk-icon="icon: bolt; ratio: 1.4" class="sb-logo-icon"></span>
+          <?php echo yourls_ui_kit_icon( 'bolt', 'sb-logo-icon', 28 ); ?>
           <span class="sb-logo-text"><?php echo htmlspecialchars( parse_url( $site, PHP_URL_HOST ) ); ?></span>
         </a>
       </div>
       <div class="uk-navbar-center uk-visible@s sb-navbar-center">
         <ul class="uk-navbar-nav uk-visible@s sb-nav-main">
           <li class="<?php echo ($is_dashboard ? 'uk-active' : ''); ?>">
-            <a href="<?php echo $dashboard_url; ?>"><span uk-icon="icon: home"></span> Dashboard</a>
+            <a href="<?php echo $dashboard_url; ?>"><?php echo yourls_ui_kit_icon( 'home' ); ?> Dashboard</a>
           </li>
           <li class="<?php echo ($current === 'index.php' ? 'uk-active' : ''); ?>">
-            <a href="<?php echo yourls_admin_url('index.php'); ?>"><span uk-icon="icon: link"></span> Links</a>
+            <a href="<?php echo yourls_admin_url('index.php'); ?>"><?php echo yourls_ui_kit_icon( 'link' ); ?> Links</a>
           </li>
           <li class="<?php echo ($current === 'tools.php' ? 'uk-active' : ''); ?>">
-            <a href="<?php echo yourls_admin_url('tools.php'); ?>"><span uk-icon="icon: cog"></span> Tools</a>
+            <a href="<?php echo yourls_admin_url('tools.php'); ?>"><?php echo yourls_ui_kit_icon( 'handyman' ); ?> Tools</a>
           </li>
           <li class="<?php echo ($is_plugins ? 'uk-active' : ''); ?>">
-            <a href="<?php echo yourls_admin_url('plugins.php'); ?>"><span uk-icon="icon: database"></span> Plugins</a>
+            <a href="<?php echo yourls_admin_url('plugins.php'); ?>"><?php echo yourls_ui_kit_icon( 'extension' ); ?> Plugins</a>
           </li>
           <li class="<?php echo ($is_settings ? 'uk-active' : ''); ?>">
-            <a href="<?php echo $settings_url; ?>"><span uk-icon="icon: settings"></span> Settings</a>
+            <a href="<?php echo $settings_url; ?>"><?php echo yourls_ui_kit_icon( 'settings' ); ?> Settings</a>
           </li>
         </ul>
       </div>
@@ -116,16 +124,16 @@ function yourls_ui_kit_template_navbar() {
         <ul class="uk-navbar-nav sb-nav-actions">
           <li>
             <a href="<?php echo $site; ?>" target="_blank" rel="noopener" uk-tooltip="View public site">
-              <span uk-icon="icon: world"></span>
+              <?php echo yourls_ui_kit_icon( 'public' ); ?>
             </a>
           </li>
           <?php $logout_url = yourls_ui_kit_template_logout_url(); ?>
           <li class="sb-user-menu">
             <details class="sb-user-details">
               <summary class="sb-user-trigger">
-                <span uk-icon="icon: user"></span>
+                <?php echo yourls_ui_kit_icon( 'person' ); ?>
                 <span class="sb-username"><?php echo defined('YOURLS_USER') ? htmlspecialchars( YOURLS_USER ) : ''; ?></span>
-                <span class="sb-user-caret">▾</span>
+                <?php echo yourls_ui_kit_icon( 'expand_more', 'sb-user-caret', 18 ); ?>
               </summary>
               <div class="sb-user-dropdown">
                 <div class="sb-user-dropdown-header">
@@ -134,15 +142,49 @@ function yourls_ui_kit_template_navbar() {
                 </div>
                 <div class="sb-user-dropdown-divider"></div>
                 <a href="<?php echo $logout_url; ?>" class="sb-user-dropdown-logout">
-                  <span uk-icon="icon: sign-out; ratio: 0.9"></span> Logout
+                  <?php echo yourls_ui_kit_icon( 'logout', '', 20 ); ?> Logout
                 </a>
               </div>
             </details>
           </li>
         </ul>
+        <button class="sb-mobile-menu-btn" type="button" aria-label="Open menu" uk-toggle="target: #sb-mobile-nav">
+          <?php echo yourls_ui_kit_icon( 'menu' ); ?>
+        </button>
       </div>
       </div>
     </nav>
+    <div id="sb-mobile-nav" uk-offcanvas="overlay: true; flip: true">
+      <div class="uk-offcanvas-bar sb-mobile-nav-panel">
+        <button class="sb-mobile-nav-close" type="button" aria-label="Close menu" uk-toggle="target: #sb-mobile-nav">
+          <?php echo yourls_ui_kit_icon( 'close' ); ?>
+        </button>
+        <div class="sb-mobile-nav-brand">
+          <?php echo yourls_ui_kit_icon( 'bolt', 'sb-logo-icon', 24 ); ?>
+          <span><?php echo htmlspecialchars( parse_url( $site, PHP_URL_HOST ) ); ?></span>
+        </div>
+        <ul class="sb-mobile-nav-links">
+          <li class="<?php echo ($is_dashboard ? 'uk-active' : ''); ?>">
+            <a href="<?php echo $dashboard_url; ?>"><?php echo yourls_ui_kit_icon( 'home' ); ?> Dashboard</a>
+          </li>
+          <li class="<?php echo ($current === 'index.php' ? 'uk-active' : ''); ?>">
+            <a href="<?php echo yourls_admin_url('index.php'); ?>"><?php echo yourls_ui_kit_icon( 'link' ); ?> Links</a>
+          </li>
+          <li class="<?php echo ($current === 'tools.php' ? 'uk-active' : ''); ?>">
+            <a href="<?php echo yourls_admin_url('tools.php'); ?>"><?php echo yourls_ui_kit_icon( 'handyman' ); ?> Tools</a>
+          </li>
+          <li class="<?php echo ($is_plugins ? 'uk-active' : ''); ?>">
+            <a href="<?php echo yourls_admin_url('plugins.php'); ?>"><?php echo yourls_ui_kit_icon( 'extension' ); ?> Plugins</a>
+          </li>
+          <li class="<?php echo ($is_settings ? 'uk-active' : ''); ?>">
+            <a href="<?php echo $settings_url; ?>"><?php echo yourls_ui_kit_icon( 'settings' ); ?> Settings</a>
+          </li>
+          <li>
+            <a href="<?php echo $site; ?>" target="_blank" rel="noopener"><?php echo yourls_ui_kit_icon( 'public' ); ?> View site</a>
+          </li>
+        </ul>
+      </div>
+    </div>
     <?php
 }
 
@@ -157,7 +199,7 @@ yourls_add_action( 'admin_page_after_table', 'yourls_ui_kit_template_table_close
 
 function yourls_ui_kit_template_table_open() {
     echo '<div class="uk-card uk-card-default uk-card-body sb-table-card uk-margin-top">';
-    echo '<h3 class="uk-card-title"><span uk-icon="icon: link"></span> Your short links</h3>';
+    echo '<h3 class="uk-card-title">' . yourls_ui_kit_icon( 'link' ) . ' Your short links</h3>';
 }
 
 function yourls_ui_kit_template_table_close() {
@@ -270,28 +312,28 @@ function yourls_ui_kit_template_dashboard_page() {
       <div class="uk-grid-small uk-child-width-1-2 uk-child-width-1-4@m sb-stats" uk-grid>
         <div>
           <div class="uk-card uk-card-default uk-card-body sb-stat-card sb-stat-blue">
-            <div class="sb-stat-icon"><span uk-icon="icon: link; ratio: 1.6"></span></div>
+            <div class="sb-stat-icon"><?php echo yourls_ui_kit_icon( 'link', '', 22 ); ?></div>
             <div class="sb-stat-value"><?php echo number_format( $total_links ); ?></div>
             <div class="sb-stat-label">Total links</div>
           </div>
         </div>
         <div>
           <div class="uk-card uk-card-default uk-card-body sb-stat-card sb-stat-green">
-            <div class="sb-stat-icon"><span uk-icon="icon: bolt; ratio: 1.6"></span></div>
+            <div class="sb-stat-icon"><?php echo yourls_ui_kit_icon( 'bolt', '', 22 ); ?></div>
             <div class="sb-stat-value"><?php echo number_format( $total_clicks ); ?></div>
             <div class="sb-stat-label">Total clicks</div>
           </div>
         </div>
         <div>
           <div class="uk-card uk-card-default uk-card-body sb-stat-card sb-stat-amber">
-            <div class="sb-stat-icon"><span uk-icon="icon: calendar; ratio: 1.6"></span></div>
+            <div class="sb-stat-icon"><?php echo yourls_ui_kit_icon( 'calendar_month', '', 22 ); ?></div>
             <div class="sb-stat-value"><?php echo number_format( $week_links ); ?></div>
             <div class="sb-stat-label">Links this week</div>
           </div>
         </div>
         <div>
           <div class="uk-card uk-card-default uk-card-body sb-stat-card sb-stat-pink">
-            <div class="sb-stat-icon"><span uk-icon="icon: bar-chart; ratio: 1.6"></span></div>
+            <div class="sb-stat-icon"><?php echo yourls_ui_kit_icon( 'bar_chart', '', 22 ); ?></div>
             <div class="sb-stat-value"><?php echo $avg; ?></div>
             <div class="sb-stat-label">Avg. clicks / link</div>
           </div>
@@ -303,7 +345,7 @@ function yourls_ui_kit_template_dashboard_page() {
         <!-- Top performers -->
         <div>
           <div class="uk-card uk-card-default uk-card-body sb-list-card uk-card-small">
-            <h3 class="uk-card-title"><span uk-icon="icon: star"></span> Top performers</h3>
+            <h3 class="uk-card-title"><?php echo yourls_ui_kit_icon( 'star' ); ?> Top performers</h3>
             <?php if ( !$top ) : ?>
               <p class="uk-text-muted">No links yet.</p>
             <?php else: ?>
@@ -333,7 +375,7 @@ function yourls_ui_kit_template_dashboard_page() {
         <!-- Recent links -->
         <div>
           <div class="uk-card uk-card-default uk-card-body sb-list-card uk-card-small">
-            <h3 class="uk-card-title"><span uk-icon="icon: clock"></span> Recently created</h3>
+            <h3 class="uk-card-title"><?php echo yourls_ui_kit_icon( 'schedule' ); ?> Recently created</h3>
             <?php if ( !$recent ) : ?>
               <p class="uk-text-muted">No links yet.</p>
             <?php else: ?>
@@ -363,7 +405,7 @@ function yourls_ui_kit_template_dashboard_page() {
 
       <div class="sb-dashboard-actions">
         <a class="uk-button uk-button-primary sb-cta" href="<?php echo yourls_admin_url('index.php'); ?>">
-          <span uk-icon="icon: plus"></span> Manage all links
+          <?php echo yourls_ui_kit_icon( 'add' ); ?> Manage all links
         </a>
       </div>
                   </div>

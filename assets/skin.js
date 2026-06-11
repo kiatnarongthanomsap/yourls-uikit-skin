@@ -5,6 +5,27 @@
 (function () {
     'use strict';
 
+    var ICON_COPY = 'content_copy';
+    var ICON_CHECK = 'check';
+    var ICON_EDIT = 'edit';
+    var ICON_DELETE = 'delete';
+    var ICON_QR = 'qr_code_2';
+    var ICON_SHARE = 'share';
+
+    function sbIconHtml(name, className, size) {
+        var sizeStyle = size ? ' style="font-size:' + parseInt(size, 10) + 'px"' : '';
+        return '<span class="material-symbols-outlined sb-icon' + (className ? ' ' + className : '') + '" aria-hidden="true"' + sizeStyle + '>' + name + '</span>';
+    }
+
+    function sbIconEl(name, className, size) {
+        var span = document.createElement('span');
+        span.className = 'material-symbols-outlined sb-icon' + (className ? ' ' + className : '');
+        span.setAttribute('aria-hidden', 'true');
+        if (size) span.style.fontSize = parseInt(size, 10) + 'px';
+        span.textContent = name;
+        return span;
+    }
+
     function ready(fn) {
         if (document.readyState !== 'loading') fn();
         else document.addEventListener('DOMContentLoaded', fn);
@@ -17,14 +38,14 @@
         if (_qrModal) return _qrModal;
         var el = document.createElement('div');
         el.id = 'sb-qr-modal';
-        el.style.cssText = 'display:none;position:fixed;inset:0;z-index:9990;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:20px;box-sizing:border-box;';
+        el.className = 'sb-qr-modal';
         el.innerHTML = [
-            '<div class="sb-qr-dialog" style="background:#fff;border-radius:14px;padding:32px 28px 24px;max-width:340px;width:100%;text-align:center;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.18);">',
-            '  <button id="sb-qr-close" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:20px;line-height:1;cursor:pointer;color:#6b7280;padding:4px 8px;" title="Close">&times;</button>',
-            '  <p class="sb-qr-kw" style="font-size:13px;font-weight:600;color:#6b7280;margin:0 0 14px;word-break:break-all;"></p>',
-            '  <img id="sb-qr-img" src="" alt="QR Code" style="width:280px;height:280px;border:1px solid #e5e9f0;border-radius:10px;display:block;margin:0 auto 12px;" />',
-            '  <p class="sb-qr-url" style="font-size:12px;color:#1e87f0;word-break:break-all;margin:0 0 14px;"></p>',
-            '  <a id="sb-qr-download" href="#" download style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:7px;border:1px solid #e5e9f0;background:#f9fafb;color:#374151;font-size:13px;font-weight:600;text-decoration:none;">&#8595; Download</a>',
+            '<div class="sb-qr-dialog">',
+            '  <button id="sb-qr-close" type="button" class="sb-qr-close" title="Close" aria-label="Close">' + sbIconHtml('close', '', 22) + '</button>',
+            '  <p class="sb-qr-kw"></p>',
+            '  <img id="sb-qr-img" class="sb-qr-img" src="" alt="QR Code" />',
+            '  <p class="sb-qr-url"></p>',
+            '  <a id="sb-qr-download" class="sb-qr-download" href="#" download>' + sbIconHtml('download', '', 18) + ' Download</a>',
             '</div>'
         ].join('');
         document.body.appendChild(el);
@@ -52,12 +73,12 @@
         modal.querySelector('#sb-qr-img').src = apiUrl;
         var dl = modal.querySelector('#sb-qr-download');
         if (dl) { dl.href = apiUrl; dl.setAttribute('download', keyword + '-qr.png'); }
-        modal.style.display = 'flex';
+        modal.classList.add('sb-qr-modal-open');
         document.body.style.overflow = 'hidden';
     }
 
     function sbHideQrModal() {
-        if (_qrModal) _qrModal.style.display = 'none';
+        if (_qrModal) _qrModal.classList.remove('sb-qr-modal-open');
         document.body.style.overflow = '';
     }
     // ─────────────────────────────────────────────────────────────────
@@ -118,9 +139,6 @@
         }
 
         // 2. Add quick "copy short URL" buttons next to each keyword link.
-        var SVG_COPY = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
-        var SVG_CHECK = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-
         function copyTextToClipboard(text, onDone) {
             if (!text) return;
             if (navigator.clipboard) {
@@ -142,7 +160,7 @@
                 btn.type = 'button';
                 btn.className = 'sb-copy-btn';
                 btn.title = 'Copy short URL';
-                btn.innerHTML = SVG_COPY;
+                btn.innerHTML = sbIconHtml(ICON_COPY, 'sb-copy-icon', 18);
                 btn.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -160,11 +178,11 @@
                     // Feedback
                     btn.dataset.copied = '1';
                     btn.classList.add('sb-copy-copied');
-                    btn.innerHTML = SVG_CHECK;
+                    btn.innerHTML = sbIconHtml(ICON_CHECK, 'sb-copy-icon', 18);
                     setTimeout(function () {
                         delete btn.dataset.copied;
                         btn.classList.remove('sb-copy-copied');
-                        btn.innerHTML = SVG_COPY;
+                        btn.innerHTML = sbIconHtml(ICON_COPY, 'sb-copy-icon', 18);
                     }, 2000);
                 });
                 a.parentNode.insertBefore(btn, a.nextSibling);
@@ -234,11 +252,6 @@
         enhanceOriginalUrlCells();
 
         // 2b. Style action buttons + add QR code button to each row.
-        var SVG_EDIT = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-        var SVG_DELETE = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
-        var SVG_QR = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/><rect x="14" y="14" width="3" height="3" fill="currentColor" stroke="none"/><rect x="19" y="17" width="2" height="2" fill="currentColor" stroke="none"/><rect x="17" y="19" width="4" height="2" fill="currentColor" stroke="none"/></svg>';
-        var SVG_SHARE = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>';
-
         var BASE_BTN_STYLE = 'display:inline-flex!important;align-items:center;justify-content:center;width:28px;height:28px;border-radius:5px;border:none;background:transparent;color:#6b7280;padding:0;margin:1px;text-decoration:none;transition:color .15s,background .15s;vertical-align:middle;box-sizing:border-box;';
 
         function applyBtnHover(el, hoverColor) {
@@ -266,13 +279,23 @@
         var newUrlWrap = document.getElementById('new_url');
         var newUrlForm = document.getElementById('new_url_form');
         if (newUrlWrap) {
-            newUrlWrap.querySelectorAll('p').forEach(function (p) {
-                Array.prototype.slice.call(p.childNodes).forEach(function (node) {
+            var newUrlShell = newUrlWrap.querySelector(':scope > div');
+            if (newUrlShell) newUrlShell.classList.add('sb-new-url-shell');
+        }
+        if (newUrlForm) {
+            var newUrlGrid = newUrlForm.querySelector('div');
+            if (newUrlGrid) {
+                newUrlGrid.classList.add('sb-new-url-grid');
+                Array.prototype.slice.call(newUrlGrid.childNodes).forEach(function (node) {
                     if (node.nodeType === 3 && node.textContent.trim() === ':') {
-                        node.parentNode.removeChild(node);
+                        newUrlGrid.removeChild(node);
                     }
                 });
-            });
+            }
+        }
+        var urlLabel = document.querySelector('label[for="add-url"]');
+        if (urlLabel) {
+            urlLabel.innerHTML = '<strong>Enter URL</strong>';
         }
 
         // Let CSS control responsive input widths.
@@ -363,12 +386,43 @@
             }, 100);
         }
 
-        function setActionIcon(link, iconSvg) {
-            link.innerHTML = iconSvg;
+        function getActionType(link) {
+            if (!link) return '';
+            var cls = ' ' + String(link.className || '').toLowerCase().replace(/\s+/g, ' ') + ' ';
+            if (cls.indexOf(' button_stats ') !== -1 || cls.indexOf(' button-stat ') !== -1) return 'stats';
+            if (cls.indexOf(' button_edit ') !== -1 || cls.indexOf(' button-edit ') !== -1) return 'edit';
+            if (cls.indexOf(' button_delete ') !== -1 || cls.indexOf(' button-delete ') !== -1) return 'delete';
+            if (cls.indexOf(' button_share ') !== -1 || cls.indexOf(' button-share ') !== -1) return 'share';
+            if (cls.indexOf(' sb-qr-btn ') !== -1) return 'qr';
+            var title = (link.getAttribute('title') || '').toLowerCase();
+            if (title === 'edit') return 'edit';
+            if (title === 'delete') return 'delete';
+            if (title === 'share') return 'share';
+            if (title === 'stats') return 'stats';
+            return '';
+        }
+
+        function hideActionLink(link) {
+            link.classList.add('sb-action-hidden');
+            link.setAttribute('aria-hidden', 'true');
+            link.style.display = 'none';
+        }
+
+        function setActionIcon(link, iconName) {
+            link.innerHTML = sbIconHtml(iconName, 'sb-action-icon', 18);
+            link.classList.add('sb-action-btn');
             link.style.cssText = BASE_BTN_STYLE;
-            link.querySelectorAll('svg, svg *').forEach(function (el) {
-                el.style.pointerEvents = 'none';
-            });
+            link.style.textIndent = '0';
+            link.style.backgroundImage = 'none';
+            link.style.backgroundColor = 'transparent';
+            link.style.opacity = '1';
+            link.style.visibility = 'visible';
+            link.style.pointerEvents = 'auto';
+            var icon = link.querySelector('.sb-icon');
+            if (icon) {
+                icon.style.pointerEvents = 'none';
+                icon.style.fontFamily = '"Material Symbols Outlined"';
+            }
         }
 
         function getShareCopyText(tr) {
@@ -397,12 +451,12 @@
 
                 var text = getShareCopyText(tr);
                 copyTextToClipboard(text, function () {
-                    setActionIcon(link, SVG_CHECK);
+                    setActionIcon(link, ICON_CHECK);
                     link.classList.add('sb-copy-copied');
                     showToast('Copied share text');
                     setTimeout(function () {
                         link.classList.remove('sb-copy-copied');
-                        setActionIcon(link, SVG_SHARE);
+                        setActionIcon(link, ICON_SHARE);
                     }, 1600);
                 });
             }, true);
@@ -476,41 +530,52 @@
                 var actionsTd = tr.querySelector('td.actions');
                 if (!actionsTd) return;
 
-                // Replace text on existing Edit / Delete / Share buttons with SVG icons
+                var keywordLink = tr.querySelector('td.keyword a');
+                if (!keywordLink) return;
+
+                var shortUrl = keywordLink.href.replace(/\/$/, '');
+                var keyword  = keywordLink.textContent.trim();
+                var ordered = { qr: null, edit: null, share: null, delete: null };
+
                 actionsTd.querySelectorAll('a').forEach(function (a) {
-                    var cls = a.className || '';
-                    if (cls.indexOf('button_link_display') !== -1 || cls.indexOf('button-edit') !== -1 || (a.title && a.title.toLowerCase() === 'edit')) {
-                        setActionIcon(a, SVG_EDIT);
+                    var type = getActionType(a);
+                    if (type === 'stats') {
+                        hideActionLink(a);
+                        return;
+                    }
+                    if (type === 'edit') {
+                        setActionIcon(a, ICON_EDIT);
                         applyBtnHover(a, 'var(--sb-accent,#1e87f0)');
-                    } else if (cls.indexOf('button_delete') !== -1 || cls.indexOf('button-delete') !== -1 || (a.title && a.title.toLowerCase() === 'delete')) {
-                        setActionIcon(a, SVG_DELETE);
+                        ordered.edit = a;
+                    } else if (type === 'delete') {
+                        setActionIcon(a, ICON_DELETE);
                         applyBtnHover(a, '#ef4444');
-                    } else if (cls.indexOf('button_share') !== -1 || cls.indexOf('button-share') !== -1 || (a.title && a.title.toLowerCase() === 'share')) {
-                        setActionIcon(a, SVG_SHARE);
+                        ordered.delete = a;
+                    } else if (type === 'share') {
+                        setActionIcon(a, ICON_SHARE);
                         attachShareCopyHandler(a, tr);
                         applyBtnHover(a, 'var(--sb-accent,#1e87f0)');
+                        ordered.share = a;
                     }
                 });
 
-                // Add QR button — opens popup modal
-                var keywordLink = tr.querySelector('td.keyword a');
-                if (!keywordLink) return;
-                var shortUrl = keywordLink.href.replace(/\/$/, '');
-                var keyword  = keywordLink.textContent.trim();
+                if (!ordered.qr) {
+                    var qrBtn = document.createElement('a');
+                    qrBtn.href = '#';
+                    qrBtn.className = 'sb-qr-btn';
+                    qrBtn.title = 'QR Code';
+                    setActionIcon(qrBtn, ICON_QR);
+                    applyBtnHover(qrBtn, 'var(--sb-accent,#1e87f0)');
+                    qrBtn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        sbShowQrModal(keyword, shortUrl);
+                    });
+                    ordered.qr = qrBtn;
+                }
 
-                var btn = document.createElement('a');
-                btn.href = '#';
-                btn.className = 'sb-qr-btn';
-                btn.title = 'QR Code';
-                setActionIcon(btn, SVG_QR);
-                applyBtnHover(btn, 'var(--sb-accent,#1e87f0)');
-                btn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    sbShowQrModal(keyword, shortUrl);
+                [ordered.qr, ordered.edit, ordered.share, ordered.delete].forEach(function (node) {
+                    if (node) actionsTd.appendChild(node);
                 });
-
-                // Insert as first button in the actions cell
-                actionsTd.insertBefore(btn, actionsTd.firstChild);
             });
         }
 
@@ -622,31 +687,31 @@
             mainTableObserver.observe(mainTableBody, { childList: true });
         }
 
-        // 2c. Swap bolt icon + domain text in navbar with the YOURLS logo image.
-        (function () {
-            var logoImg = document.getElementById('yourls-logo');
-            var navBrand = document.querySelector('.sb-logo');
-            if (!logoImg || !navBrand) return;
-
-            var cloned = logoImg.cloneNode(true);
-            cloned.id = 'sb-navbar-logo';
-            cloned.style.cssText = 'display:block;height:70px;width:auto;object-fit:contain;';
-
-            var icon = navBrand.querySelector('.sb-logo-icon');
-            var text = navBrand.querySelector('.sb-logo-text');
-            if (icon) icon.remove();
-            if (text) text.remove();
-            navBrand.insertBefore(cloned, navBrand.firstChild);
-        }());
-
         // 3. Add a body class on the login page so the CSS can re-style it.
         if (document.body && document.querySelector('form#login')) {
             document.body.classList.add('login');
+            var loginError = document.getElementById('error-message');
+            if (loginError && loginError.textContent.trim()) {
+                loginError.style.display = 'block';
+            }
             var loginLogo = document.getElementById('yourls-logo');
             var loginTitleLink = document.querySelector('h1 a');
             var loginTitle = document.querySelector('header h1, h1');
             var loginHeader = document.querySelector('header[role="banner"], header');
             var loginTitleText = loginTitleLink ? loginTitleLink.textContent.replace(/\s+/g, ' ').trim().replace(/^YOURLS:\s*/i, '') : '';
+            if (loginLogo) {
+                loginLogo.style.display = 'none';
+                if (!document.querySelector('.sb-login-brand-icon')) {
+                    var brandIcon = document.createElement('div');
+                    brandIcon.className = 'sb-login-brand-icon';
+                    brandIcon.innerHTML = sbIconHtml('link', 'sb-login-brand-symbol', 44);
+                    if (loginHeader) {
+                        loginHeader.insertBefore(brandIcon, loginHeader.firstChild);
+                    } else if (loginLogo.parentNode) {
+                        loginLogo.parentNode.insertBefore(brandIcon, loginLogo);
+                    }
+                }
+            }
             if (loginLogo && loginTitle && loginHeader && loginLogo.nextElementSibling !== loginTitle) {
                 loginHeader.insertBefore(loginLogo, loginTitle);
             }
@@ -679,17 +744,134 @@
                 '<p>',
                 '  <span>Powered by</span>',
                 '  <a href="https://yourls.org/" rel="noopener" target="_blank" aria-label="YOURLS">',
-                '    <svg class="sb-login-footer-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">',
-                '      <path d="M10 7H8a5 5 0 0 0 0 10h2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>',
-                '      <path d="M14 7h2a5 5 0 0 1 0 10h-2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>',
-                '      <path d="M8.5 12h7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>',
-                '    </svg>',
+                '    ' + sbIconHtml('link', 'sb-login-footer-icon', 18),
                 '    <span>YOURLS v 1.10.4</span>',
                 '  </a>',
                 '</p>'
             ].join('');
             document.body.appendChild(loginFooter);
 
+        }
+
+        function publicRestructureFieldRow(field, labelText, rowClass) {
+            var row = field.closest('p, div');
+            if (!row) return;
+            row.classList.add(rowClass);
+            var label = field.closest('label');
+            if (!label || label.dataset.sbFieldDone) return;
+            label.dataset.sbFieldDone = '1';
+            label.classList.add('sb-public-field-label');
+
+            var textEl = document.createElement('span');
+            textEl.className = 'sb-public-label-text';
+            textEl.textContent = labelText;
+
+            while (label.firstChild) label.removeChild(label.firstChild);
+            label.appendChild(textEl);
+            label.appendChild(field);
+        }
+
+        function publicExtractKeywordPrefix(label, field) {
+            var prefix = '';
+            Array.prototype.slice.call(label.childNodes).forEach(function (node) {
+                if (node === field) return;
+                if (node.nodeType !== 3) return;
+                var match = node.textContent.match(/(https?:\/\/\S+?\/)/i);
+                if (match) prefix = match[1];
+            });
+            if (!prefix) {
+                var text = label.textContent.replace(field.value, '').trim();
+                var fallback = text.match(/(https?:\/\/\S+?\/)/i);
+                if (fallback) prefix = fallback[1];
+            }
+            return prefix;
+        }
+
+        function publicRestructureKeywordRow(keywordField) {
+            var keywordRow = keywordField.closest('p, div');
+            if (!keywordRow) return;
+            keywordRow.classList.add('sb-public-keyword-row');
+            keywordField.removeAttribute('size');
+
+            var label = keywordField.closest('label');
+            if (!label || label.dataset.sbFieldDone) return;
+            label.dataset.sbFieldDone = '1';
+            label.classList.add('sb-public-field-label');
+
+            var prefix = publicExtractKeywordPrefix(label, keywordField);
+            var labelText = document.createElement('span');
+            labelText.className = 'sb-public-label-text';
+            labelText.textContent = 'Custom short URL (optional)';
+
+            var group = document.createElement('span');
+            group.className = 'sb-public-kw-group';
+
+            if (prefix) {
+                var prefixEl = document.createElement('span');
+                prefixEl.className = 'sb-public-kw-prefix';
+                prefixEl.textContent = prefix;
+                prefixEl.setAttribute('title', prefix);
+                group.appendChild(prefixEl);
+            }
+
+            while (label.firstChild) label.removeChild(label.firstChild);
+            label.appendChild(labelText);
+            label.appendChild(group);
+            group.appendChild(keywordField);
+        }
+
+        function publicBuildHeader() {
+            if (document.querySelector('.sb-public-header')) return;
+
+            var header = document.createElement('header');
+            header.className = 'sb-public-header';
+            header.innerHTML = [
+                '<div class="sb-public-header-inner">',
+                '  <a class="sb-public-brand" href="' + window.location.pathname + '">',
+                '    <span class="sb-public-brand-icon" aria-hidden="true">' + sbIconHtml('link', 'sb-public-brand-symbol', 28) + '</span>',
+                '    <span class="sb-public-brand-copy">',
+                '      <strong>LINK-KUSCC</strong>',
+                '      <span>URL Shortener</span>',
+                '    </span>',
+                '  </a>',
+                '  <a class="sb-public-admin-link" href="' + new URL('admin/', window.location.href).href + '" aria-label="Go to admin page">',
+                '    ' + sbIconHtml('settings', 'sb-public-admin-icon', 18),
+                '    <span>Admin</span>',
+                '  </a>',
+                '</div>'
+            ].join('');
+            document.body.insertBefore(header, document.body.firstChild);
+        }
+
+        function publicBuildHero(titleEl, isResult) {
+            if (!titleEl || titleEl.closest('.sb-public-hero')) return;
+
+            var hero = document.createElement('div');
+            hero.className = 'sb-public-hero';
+            var subtitle = document.createElement('p');
+            subtitle.className = 'sb-public-subtitle';
+
+            if (isResult) {
+                titleEl.textContent = 'Link shortened';
+                subtitle.textContent = 'Your short URL is ready to copy or share.';
+            } else {
+                titleEl.textContent = 'Shorten a link';
+                subtitle.textContent = 'Paste a long URL and get a short link instantly.';
+            }
+
+            titleEl.classList.add('sb-public-title');
+            titleEl.parentNode.insertBefore(hero, titleEl);
+            hero.appendChild(titleEl);
+            hero.appendChild(subtitle);
+        }
+
+        function publicHideNote() {
+            document.querySelectorAll('h2').forEach(function (h2) {
+                if (h2.textContent.trim().toLowerCase().indexOf('please note') === -1) return;
+                h2.style.display = 'none';
+                var next = h2.nextElementSibling;
+                if (next && next.tagName === 'P') next.style.display = 'none';
+            });
         }
 
         // 4. Tag the stock YOURLS public front page so the skin can lay it out.
@@ -706,6 +888,8 @@
         if (document.body && hasBookmarklets && (publicForm || publicResultHeading) && !document.body.classList.contains('login')) {
             document.body.classList.add('public-site');
             if (publicResultHeading) document.body.classList.add('public-result');
+            publicBuildHeader();
+
             var shortenForm = publicForm ? publicForm.closest('form') : null;
             if (shortenForm) {
                 shortenForm.classList.add('sb-public-form');
@@ -716,20 +900,15 @@
                 var submitField = shortenForm.querySelector('input[type="submit"], button[type="submit"]');
 
                 if (urlField) {
-                    urlField.placeholder = 'https://';
+                    urlField.placeholder = 'https://example.com/page';
                     if (urlField.value.trim() === 'http://') urlField.value = 'https://';
-                    var urlRow = urlField.closest('p, div');
-                    if (urlRow) urlRow.classList.add('sb-public-url-row');
+                    publicRestructureFieldRow(urlField, 'URL', 'sb-public-url-row');
                 }
                 if (keywordField) {
-                    var keywordRow = keywordField.closest('p, div');
-                    if (keywordRow) keywordRow.classList.add('sb-public-keyword-row');
-                    keywordField.removeAttribute('size');
+                    publicRestructureKeywordRow(keywordField);
                 }
                 if (titleField) {
-                    var titleRow = titleField.closest('p, div');
-                    if (titleRow) titleRow.classList.add('sb-public-title-row');
-                    titleField.removeAttribute('size');
+                    publicRestructureFieldRow(titleField, 'Title (optional)', 'sb-public-title-row');
                 }
                 if (submitField) {
                     var submitRow = submitField.closest('p, div');
@@ -814,34 +993,17 @@
                 }
             }
 
-            if (!document.querySelector('.sb-public-admin-link')) {
-                var adminLink = document.createElement('a');
-                adminLink.className = 'sb-public-admin-link';
-                adminLink.href = new URL('admin/', window.location.href).href;
-                adminLink.textContent = 'Admin';
-                adminLink.setAttribute('aria-label', 'Go to admin page');
-
-                var publicTitle = null;
-                document.querySelectorAll('h2').forEach(function (h2) {
-                    if (!publicTitle && h2.textContent.trim().toLowerCase().indexOf('enter a new url') !== -1) {
-                        publicTitle = h2;
-                    }
-                });
-
-                if (publicTitle && publicTitle.parentNode) {
-                    publicTitle.parentNode.insertBefore(adminLink, publicTitle);
-                } else if (publicResultHeading && publicResultHeading.parentNode) {
-                    publicResultHeading.parentNode.insertBefore(adminLink, publicResultHeading);
-                } else if (shortenForm && shortenForm.parentNode) {
-                    shortenForm.parentNode.insertBefore(adminLink, shortenForm);
-                } else {
-                    document.body.insertBefore(adminLink, document.body.firstChild);
+            var publicTitle = null;
+            document.querySelectorAll('h2').forEach(function (h2) {
+                var text = h2.textContent.trim().toLowerCase();
+                if (!publicTitle && text.indexOf('enter a new url') !== -1) {
+                    publicTitle = h2;
                 }
-            }
+            });
+            if (publicTitle) publicBuildHero(publicTitle, false);
 
             document.querySelectorAll('h2').forEach(function (h2) {
                 var text = h2.textContent.trim().toLowerCase();
-                if (text.indexOf('enter a new url') !== -1) h2.classList.add('sb-public-title');
                 if (text.indexOf('bookmarklets') !== -1) {
                     h2.classList.add('sb-public-section-title', 'sb-bookmarklets-title');
                     var intro = h2.nextElementSibling;
@@ -849,11 +1011,8 @@
                     if (intro) intro.classList.add('sb-bookmarklet-intro');
                     if (links) links.classList.add('sb-bookmarklet-list');
                 }
-                if (text.indexOf('please note') !== -1) {
-                    h2.classList.add('sb-public-section-title', 'sb-note-title');
-                    if (h2.nextElementSibling) h2.nextElementSibling.classList.add('sb-public-note');
-                }
             });
+            publicHideNote();
 
             if (publicResultHeading && !publicResultHeading.dataset.sbResultEnhanced) {
                 publicResultHeading.dataset.sbResultEnhanced = '1';
@@ -865,7 +1024,7 @@
                 var icon = document.createElement('div');
                 icon.className = 'sb-public-result-icon';
                 icon.setAttribute('aria-hidden', 'true');
-                icon.textContent = '✓';
+                icon.innerHTML = sbIconHtml('check_circle', 'sb-public-result-symbol', 28);
 
                 var body = document.createElement('div');
                 body.className = 'sb-public-result-body';
@@ -1004,7 +1163,7 @@
                 if (!filterForm.querySelector('.sb-filter-header')) {
                     var filterHeader = document.createElement('div');
                     filterHeader.className = 'sb-filter-header';
-                    filterHeader.innerHTML = '<span class="sb-filter-header-icon" uk-icon="icon: search; ratio: 1.1"></span><span class="sb-filter-header-title">Filter &amp; search links</span>';
+                    filterHeader.innerHTML = '<span class="sb-filter-header-icon">' + sbIconHtml('search', '', 20) + '</span><span class="sb-filter-header-title">Filter &amp; search links</span>';
                     filterForm.insertBefore(filterHeader, filterForm.firstChild);
                 }
             }
@@ -1068,7 +1227,7 @@
             advancedToggle.type = 'button';
             advancedToggle.className = 'sb-filter-advanced-toggle';
             advancedToggle.setAttribute('aria-expanded', 'true');
-            advancedToggle.innerHTML = '<span uk-icon="icon: settings; ratio: 0.9"></span><span>Advanced filters</span><span class="sb-filter-advanced-caret" uk-icon="icon: chevron-down; ratio: 0.8"></span>';
+            advancedToggle.innerHTML = sbIconHtml('tune', '', 18) + '<span>Advanced filters</span><span class="sb-filter-advanced-caret">' + sbIconHtml('expand_more', '', 18) + '</span>';
             advancedToggle.addEventListener('click', function () {
                 var open = advancedSection.classList.toggle('sb-filter-advanced-open');
                 advancedToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -1484,8 +1643,12 @@
         // Toast notification helper
         function showToast(msg, color) {
             var t = document.createElement('div');
-            t.textContent = msg;
-            t.className = 'sb-toast' + (color === 'fail' || color === 'error' ? ' sb-toast-error' : '');
+            var isError = color === 'fail' || color === 'error';
+            t.className = 'sb-toast' + (isError ? ' sb-toast-error' : '');
+            t.appendChild(sbIconEl(isError ? 'error' : 'check_circle', 'sb-toast-icon', 22));
+            var text = document.createElement('span');
+            text.textContent = msg;
+            t.appendChild(text);
             document.body.appendChild(t);
             setTimeout(function () {
                 t.style.opacity = '0';
