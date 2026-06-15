@@ -36,6 +36,23 @@
         return 'secondary';
     }
 
+    function sbIsUrlPrefixOnly(value) {
+        value = (value || '').trim().toLowerCase();
+        return value === 'http://' || value === 'https://';
+    }
+
+    function sbSetupUrlInputPlaceholder(input, placeholder) {
+        if (!input || input.dataset.sbUrlPlaceholder) return input;
+        input.dataset.sbUrlPlaceholder = '1';
+
+        if (!(input.value || '').trim() || sbIsUrlPrefixOnly(input.value)) {
+            input.value = '';
+        }
+
+        input.placeholder = placeholder || 'https://';
+        return input;
+    }
+
     function sbEnhanceInputButton(input, iconName, label, wrapClass) {
         if (!input || input.dataset.sbIconDone) return input;
         input.dataset.sbIconDone = '1';
@@ -63,6 +80,45 @@
         scope.querySelectorAll('#delete-confirm-dialog .button-group input[type="reset"], .ui-dialog .button-group input[type="reset"]').forEach(function (btn) {
             sbEnhanceInputButton(btn, 'close', btn.value || 'Cancel');
         });
+    }
+
+    function sbResetDeleteDialogLayout(dialog) {
+        dialog = dialog || document.getElementById('delete-confirm-dialog');
+        if (!dialog) return;
+        if (!dialog.open) {
+            dialog.style.removeProperty('display');
+            dialog.style.removeProperty('flex-direction');
+            return;
+        }
+        dialog.style.setProperty('display', 'flex', 'important');
+        dialog.style.setProperty('flex-direction', 'column', 'important');
+        dialog.style.setProperty('height', 'fit-content', 'important');
+        dialog.style.setProperty('min-height', '0', 'important');
+        dialog.style.setProperty('width', 'min(480px, calc(100vw - 40px))', 'important');
+        dialog.style.setProperty('max-height', 'calc(100vh - 40px)', 'important');
+        dialog.querySelectorAll('.confirm-message, .button-group').forEach(function (el) {
+            el.style.setProperty('height', 'auto', 'important');
+            el.style.setProperty('min-height', '0', 'important');
+            el.style.setProperty('width', '100%', 'important');
+            el.style.setProperty('max-width', 'none', 'important');
+        });
+    }
+
+    function sbWatchDeleteDialogLayout() {
+        var dialog = document.getElementById('delete-confirm-dialog');
+        if (!dialog || dialog.dataset.sbLayoutWatch) return;
+        dialog.dataset.sbLayoutWatch = '1';
+        dialog.addEventListener('close', function () {
+            sbResetDeleteDialogLayout(dialog);
+        });
+        new MutationObserver(function () {
+            if (!dialog.open) {
+                sbResetDeleteDialogLayout(dialog);
+                return;
+            }
+            sbResetDeleteDialogLayout(dialog);
+            sbEnhanceDialogButtons(dialog);
+        }).observe(dialog, { attributes: true, attributeFilter: ['open'] });
     }
 
     function sbApplyFieldClass(root) {
@@ -132,13 +188,23 @@
         setTimeout(function () { URL.revokeObjectURL(url); }, 0);
     }
 
-    function sbDownloadQrPng() {
-        var modal = _qrModal;
-        if (!modal) return;
+    function sbGetQrImageUrl(shortUrl, size) {
+        var qrSize = size || 280;
+        return 'https://api.qrserver.com/v1/create-qr-code/?size=' + qrSize + 'x' + qrSize + '&margin=10&data=' + encodeURIComponent(shortUrl);
+    }
 
-        var img = modal.querySelector('#sb-qr-img');
-        var filename = (modal.dataset.qrKeyword || 'qr') + '-qr.png';
-        var apiUrl = modal.dataset.qrImageUrl || (img ? img.src : '');
+    function sbExtractKeyword(shortUrl) {
+        try {
+            var parsed = new URL(shortUrl);
+            var parts = parsed.pathname.replace(/\/$/, '').split('/').filter(Boolean);
+            return parts.length ? parts[parts.length - 1] : 'qr';
+        } catch (e) {
+            return 'qr';
+        }
+    }
+
+    function sbDownloadQrImage(img, keyword, apiUrl) {
+        var filename = (keyword || 'qr') + '-qr.png';
 
         function downloadFromCanvas() {
             if (!img || !img.complete || !img.naturalWidth) return false;
@@ -174,9 +240,18 @@
             });
     }
 
+    function sbDownloadQrPng() {
+        var modal = _qrModal;
+        if (!modal) return;
+
+        var img = modal.querySelector('#sb-qr-img');
+        var apiUrl = modal.dataset.qrImageUrl || (img ? img.src : '');
+        sbDownloadQrImage(img, modal.dataset.qrKeyword || 'qr', apiUrl);
+    }
+
     function sbShowQrModal(keyword, shortUrl) {
         var modal = sbGetQrModal();
-        var apiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=10&data=' + encodeURIComponent(shortUrl);
+        var apiUrl = sbGetQrImageUrl(shortUrl, 280);
         var img = modal.querySelector('#sb-qr-img');
         modal.dataset.qrKeyword = keyword;
         modal.dataset.qrImageUrl = apiUrl;
@@ -428,7 +503,10 @@
 
         // Let CSS control responsive input widths.
         var urlInput = document.getElementById('add-url');
-        if (urlInput) urlInput.removeAttribute('size');
+        if (urlInput) {
+            urlInput.removeAttribute('size');
+            sbSetupUrlInputPlaceholder(urlInput, 'https://');
+        }
         var kwInput = document.getElementById('add-keyword');
         if (kwInput) kwInput.removeAttribute('size');
         var RESERVED_KEYWORDS = ['kuscc'];
@@ -947,6 +1025,115 @@
             group.appendChild(keywordField);
         }
 
+        function publicIsResultMessage(text) {
+            text = (text || '').replace(/\s+/g, ' ').trim().toLowerCase();
+            return text.indexOf('added to database') !== -1
+                || text.indexOf('already exists in database') !== -1
+                || /\(short url:\s*[^)]+\)/i.test(text);
+        }
+
+        function publicDetectResultHeading() {
+            var heading = null;
+            document.querySelectorAll('h1, h2').forEach(function (el) {
+                if (heading) return;
+                if (publicIsResultMessage(el.textContent)) heading = el;
+            });
+            return heading;
+        }
+
+        function publicResultIsExisting(heading) {
+            return /already exists in database/i.test((heading && heading.textContent) || '');
+        }
+
+        function publicParseResultUrl(heading, shortUrlInput, copyLinkInput) {
+            var shortValue = '';
+            if (shortUrlInput && shortUrlInput.value) shortValue = shortUrlInput.value.trim();
+            else if (copyLinkInput && copyLinkInput.value) shortValue = copyLinkInput.value.trim();
+
+            if (!shortValue && heading) {
+                var headingLink = heading.querySelector('a[href]');
+                if (headingLink && headingLink.href) shortValue = headingLink.href.trim();
+                else {
+                    var text = heading.textContent.replace(/\s+/g, ' ').trim();
+                    var shortMatch = text.match(/\(short url:\s*([^)]+)\)/i);
+                    if (shortMatch) shortValue = shortMatch[1].trim();
+                    else shortValue = text.replace(/\s+added to database\.?$/i, '').trim();
+                }
+            }
+
+            if (shortValue && !/^https?:\/\//i.test(shortValue)) {
+                shortValue = 'https://' + shortValue.replace(/^\/+/, '');
+            }
+
+            return shortValue;
+        }
+
+        function publicHideShareboxes() {
+            var shareboxes = document.getElementById('shareboxes');
+            if (shareboxes) shareboxes.style.display = 'none';
+        }
+
+        function publicBuildResultShell(resultCard, options) {
+            if (!resultCard || resultCard.closest('.sb-public-landing, .sb-public-result-landing')) return;
+
+            options = options || {};
+            var isExisting = !!options.existing;
+            var parent = resultCard.parentNode;
+
+            var shell = document.createElement('div');
+            shell.className = 'sb-public-result-landing' + (isExisting ? ' sb-public-result-landing--existing' : '');
+
+            var hero = document.createElement('div');
+            hero.className = 'sb-public-hero sb-public-result-hero';
+            hero.innerHTML = isExisting ? [
+                '<h2 class="sb-public-title">Already shortened</h2>',
+                '<p class="sb-public-subtitle">This long URL is already in the database. Use the existing short link below.</p>'
+            ].join('') : [
+                '<h2 class="sb-public-title">Link shortened</h2>',
+                '<p class="sb-public-subtitle">Your short URL is ready to copy or open.</p>'
+            ].join('');
+
+            parent.insertBefore(shell, resultCard);
+            shell.appendChild(hero);
+            shell.appendChild(resultCard);
+        }
+
+        function publicBuildResultQr(shortUrl) {
+            var keyword = sbExtractKeyword(shortUrl);
+            var apiUrl = sbGetQrImageUrl(shortUrl, 220);
+            var qrWrap = document.createElement('div');
+            qrWrap.className = 'sb-public-result-qr';
+
+            var qrLabel = document.createElement('p');
+            qrLabel.className = 'sb-public-result-qr-label';
+            qrLabel.textContent = 'QR code';
+
+            var qrFrame = document.createElement('div');
+            qrFrame.className = 'sb-public-result-qr-frame';
+
+            var img = document.createElement('img');
+            img.className = 'sb-public-result-qr-img';
+            img.alt = 'QR code for ' + shortUrl;
+            img.width = 220;
+            img.height = 220;
+            img.crossOrigin = 'anonymous';
+            img.src = apiUrl;
+
+            var downloadBtn = document.createElement('button');
+            downloadBtn.type = 'button';
+            downloadBtn.className = 'sb-public-result-qr-download';
+            downloadBtn.innerHTML = sbIconHtml('download', 'sb-public-result-btn-icon', 18) + '<span>Download QR</span>';
+            downloadBtn.addEventListener('click', function () {
+                sbDownloadQrImage(img, keyword, apiUrl);
+            });
+
+            qrFrame.appendChild(img);
+            qrWrap.appendChild(qrLabel);
+            qrWrap.appendChild(qrFrame);
+            qrWrap.appendChild(downloadBtn);
+            return qrWrap;
+        }
+
         function publicBuildHeader() {
             if (document.querySelector('.sb-public-header')) return;
 
@@ -1047,15 +1234,9 @@
         // 4. Tag the stock YOURLS public front page so the skin can lay it out.
         var publicForm = document.querySelector('form input[name="url"]');
         var hasBookmarklets = document.querySelector('a.bookmarklet');
-        var publicResultHeading = null;
-        document.querySelectorAll('h1, h2').forEach(function (heading) {
-            var text = heading.textContent.replace(/\s+/g, ' ').trim().toLowerCase();
-            if (!publicResultHeading && text.indexOf('added to database') !== -1) {
-                publicResultHeading = heading;
-            }
-        });
+        var publicResultHeading = publicDetectResultHeading();
 
-        if (document.body && hasBookmarklets && (publicForm || publicResultHeading) && !document.body.classList.contains('login')) {
+        if (document.body && hasBookmarklets && !document.body.classList.contains('login')) {
             document.body.classList.add('public-site');
             if (publicResultHeading) document.body.classList.add('public-result');
             publicBuildHeader();
@@ -1070,8 +1251,7 @@
                 var submitField = shortenForm.querySelector('input[type="submit"], button[type="submit"]');
 
                 if (urlField) {
-                    urlField.placeholder = 'https://example.com/page';
-                    if (urlField.value.trim() === 'http://') urlField.value = 'https://';
+                    sbSetupUrlInputPlaceholder(urlField, 'https://');
                     publicRestructureFieldRow(urlField, 'URL', 'sb-public-url-row');
                 }
                 if (keywordField) {
@@ -1192,59 +1372,93 @@
 
             if (publicResultHeading && !publicResultHeading.dataset.sbResultEnhanced) {
                 publicResultHeading.dataset.sbResultEnhanced = '1';
+                publicHideShareboxes();
+
+                var isExisting = publicResultIsExisting(publicResultHeading);
+                var shortUrlInput = document.getElementById('short_url');
+                var copyLinkInput = document.getElementById('copylink');
+                var shortValue = publicParseResultUrl(publicResultHeading, shortUrlInput, copyLinkInput);
+
                 publicResultHeading.classList.add('sb-public-result-title');
+                publicResultHeading.textContent = '';
+                if (shortValue) {
+                    var urlLink = document.createElement('a');
+                    urlLink.href = shortValue;
+                    urlLink.textContent = shortValue;
+                    urlLink.rel = 'noopener';
+                    publicResultHeading.appendChild(urlLink);
+                }
 
                 var resultCard = document.createElement('section');
                 resultCard.className = 'sb-public-result-card';
+                if (isExisting) resultCard.classList.add('sb-public-result-card--existing');
 
                 var icon = document.createElement('div');
                 icon.className = 'sb-public-result-icon';
-                icon.setAttribute('aria-hidden', 'true');
-                icon.innerHTML = sbIconHtml('check_circle', 'sb-public-result-symbol', 28);
+                if (!isExisting) {
+                    icon.setAttribute('aria-hidden', 'true');
+                    icon.innerHTML = sbIconHtml('check_circle', 'sb-public-result-symbol', 28);
+                }
 
                 var body = document.createElement('div');
                 body.className = 'sb-public-result-body';
 
+                if (isExisting) {
+                    var notice = document.createElement('div');
+                    notice.className = 'sb-public-result-notice';
+                    notice.innerHTML = sbIconHtml('info', 'sb-public-result-notice-icon', 20)
+                        + '<span>No new link was created. The URL you entered was shortened before.</span>';
+                    body.appendChild(notice);
+                }
+
                 var label = document.createElement('div');
                 label.className = 'sb-public-result-label';
-                label.textContent = 'Short URL created';
+                label.textContent = isExisting ? 'Existing short URL' : 'Short URL created';
 
                 publicResultHeading.parentNode.insertBefore(resultCard, publicResultHeading);
-                resultCard.appendChild(icon);
+                if (!isExisting) resultCard.appendChild(icon);
                 resultCard.appendChild(body);
                 body.appendChild(label);
                 body.appendChild(publicResultHeading);
 
-                var shortUrlInput = document.getElementById('short_url');
-                var copyLinkInput = document.getElementById('copylink');
-                var shortValue = '';
-                if (shortUrlInput && shortUrlInput.value) shortValue = shortUrlInput.value;
-                else if (copyLinkInput && copyLinkInput.value) shortValue = copyLinkInput.value;
-
                 if (shortValue) {
+                    body.appendChild(publicBuildResultQr(shortValue));
+
                     var actions = document.createElement('div');
                     actions.className = 'sb-public-result-actions';
 
                     var openLink = document.createElement('a');
                     openLink.className = 'sb-public-result-open';
                     openLink.href = shortValue;
-                    openLink.textContent = 'Open short URL';
+                    openLink.target = '_blank';
+                    openLink.rel = 'noopener';
+                    openLink.innerHTML = sbIconHtml('open_in_new', 'sb-public-result-btn-icon', 18) + '<span>Open short URL</span>';
 
                     var copyButton = document.createElement('button');
                     copyButton.type = 'button';
                     copyButton.className = 'sb-public-result-copy';
-                    copyButton.textContent = 'Copy';
+                    copyButton.innerHTML = sbIconHtml(ICON_COPY, 'sb-public-result-btn-icon', 18) + '<span>Copy</span>';
                     copyButton.addEventListener('click', function () {
                         copyTextToClipboard(shortValue, function () {
-                            copyButton.textContent = 'Copied';
-                            setTimeout(function () { copyButton.textContent = 'Copy'; }, 1400);
+                            copyButton.innerHTML = sbIconHtml(ICON_CHECK, 'sb-public-result-btn-icon', 18) + '<span>Copied</span>';
+                            setTimeout(function () {
+                                copyButton.innerHTML = sbIconHtml(ICON_COPY, 'sb-public-result-btn-icon', 18) + '<span>Copy</span>';
+                            }, 1400);
                         });
                     });
+
+                    var anotherLink = document.createElement('a');
+                    anotherLink.className = 'sb-public-result-another';
+                    anotherLink.href = window.location.pathname;
+                    anotherLink.innerHTML = sbIconHtml('add_link', 'sb-public-result-btn-icon', 18) + '<span>Shorten another link</span>';
 
                     actions.appendChild(openLink);
                     actions.appendChild(copyButton);
                     body.appendChild(actions);
+                    body.appendChild(anotherLink);
                 }
+
+                publicBuildResultShell(resultCard, { existing: isExisting });
             }
         }
 
@@ -1476,6 +1690,7 @@
         }
 
         sbEnhanceDialogButtons(document);
+        sbWatchDeleteDialogLayout();
 
         // 5b. Merge "Display X to Y of Z URLs." + "Overall, tracking..." onto one line.
         var overallP = document.getElementById('overall_tracking');
@@ -1656,23 +1871,88 @@
             d.id = 'sb-dialog-overrides';
             d.textContent = [
                 /* Native YOURLS delete dialog */
-                '#delete-confirm-dialog{',
+                '#delete-confirm-dialog:not([open]){display:none!important;}',
+                '#delete-confirm-dialog[open]{',
+                '  display:flex!important;flex-direction:column!important;',
+                '  width:min(calc(100vw - 40px),480px)!important;',
+                '  height:fit-content!important;min-height:0!important;max-height:calc(100vh - 40px);',
                 '  padding:0!important;overflow:hidden!important;box-sizing:border-box!important;',
+                '  border:1px solid var(--sb-border)!important;',
+                '  border-radius:var(--sb-radius)!important;',
+                '  background:var(--sb-surface)!important;color:var(--sb-text)!important;',
+                '  box-shadow:var(--sb-shadow-lg)!important;',
                 '}',
-                '#delete-confirm-dialog .confirm-message{',
-                '  padding:24px 48px 0!important;box-sizing:border-box!important;',
+                '#delete-confirm-dialog::backdrop{',
+                '  background:rgba(15,23,42,.45)!important;',
+                '  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);',
                 '}',
-                '#delete-confirm-dialog .button-group{',
-                '  width:100%!important;max-width:none!important;margin:32px 0 0!important;',
-                '  padding:28px 32px!important;box-sizing:border-box!important;',
-                '  display:flex!important;align-items:center!important;justify-content:center!important;gap:28px!important;',
-                '  float:none!important;clear:both!important;background:#e0f2ff!important;',
-                '  border:none!important;border-top:1px solid #bfdbfe!important;',
+                '#delete-confirm-dialog > div[name="dialog_title"]{',
+                '  width:auto!important;height:auto!important;margin:0!important;',
+                '  padding:14px 20px!important;border:0!important;border-radius:0!important;',
+                '  background:var(--sb-accent)!important;color:#fff!important;',
+                '  font-size:15px!important;font-weight:700!important;text-align:left!important;',
+                '}',
+                '#delete-confirm-dialog .confirm-message,',
+                '#delete-confirm-dialog div.confirm-message{',
+                '  flex:0 0 auto!important;width:100%!important;max-width:none!important;',
+                '  height:auto!important;min-height:0!important;float:none!important;',
+                '  padding:20px 24px!important;background:var(--sb-surface)!important;',
+                '  color:var(--sb-text)!important;overflow:visible!important;',
+                '}',
+                '#delete-confirm-dialog .confirm-message ul{',
+                '  margin:16px 0 0!important;padding:0!important;border:0!important;',
+                '  list-style:none!important;display:grid;gap:10px;',
+                '}',
+                '#delete-confirm-dialog .confirm-message ul li span{',
+                '  border:0!important;border-radius:0!important;padding:0!important;',
+                '  background:transparent!important;color:var(--sb-text)!important;',
+                '}',
+                '#delete-confirm-dialog .button-group,',
+                '#delete-confirm-dialog div.button-group{',
+                '  flex:0 0 auto!important;width:100%!important;max-width:none!important;',
+                '  height:auto!important;min-height:0!important;margin:0!important;',
+                '  padding:16px 20px!important;box-sizing:border-box!important;',
+                '  display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:10px!important;',
+                '  float:none!important;clear:both!important;background:var(--sb-surface-muted)!important;',
+                '  border:0!important;border-top:1px solid var(--sb-border)!important;',
+                '}',
+                '#delete-confirm-dialog .button-group input:focus{outline:none!important;}',
+                '#delete-confirm-dialog .button-group input:focus-visible{',
+                '  outline:2px solid var(--sb-accent)!important;outline-offset:2px!important;',
+                '}',
+                '#delete-confirm-dialog .button-group input.button.primary:focus-visible{',
+                '  outline:2px solid #fff!important;',
+                '  box-shadow:0 0 0 3px color-mix(in srgb,var(--sb-danger) 50%,transparent)!important;',
                 '}',
                 '#delete-confirm-dialog .button-group input[type=button],',
                 '#delete-confirm-dialog .button-group input[type=reset],',
                 '#delete-confirm-dialog .button-group input[type=submit]{',
-                '  margin:0!important;',
+                '  min-height:var(--sb-input-height)!important;margin:0!important;',
+                '  padding-block:0!important;padding-inline:18px!important;',
+                '  border-radius:var(--sb-input-radius)!important;',
+                '  font-size:14px!important;font-weight:700!important;box-shadow:none!important;',
+                '}',
+                '#delete-confirm-dialog .sb-input-btn-wrap,',
+                '.ui-dialog .button-group .sb-input-btn-wrap{',
+                '  display:inline-grid;grid-template-areas:"btn";align-items:center;justify-items:stretch;',
+                '}',
+                '#delete-confirm-dialog .sb-input-btn-wrap > .sb-btn-icon,',
+                '.ui-dialog .button-group .sb-input-btn-wrap > .sb-btn-icon{',
+                '  grid-area:btn;justify-self:start;align-self:center;margin-left:14px;z-index:1;pointer-events:none;line-height:1;',
+                '}',
+                '#delete-confirm-dialog .sb-input-btn-wrap > input.sb-btn-has-icon,',
+                '.ui-dialog .button-group .sb-input-btn-wrap > input.sb-btn-has-icon{',
+                '  padding-left:38px!important;padding-right:18px!important;',
+                '  line-height:var(--sb-input-height);text-align:center;',
+                '}',
+                '#delete-confirm-dialog .button-group input.button.primary,',
+                '#delete-confirm-dialog .button-group input[type=button].primary{',
+                '  border:0!important;background:var(--sb-danger)!important;color:#fff!important;',
+                '}',
+                '#delete-confirm-dialog .button-group input[type=reset],',
+                '#delete-confirm-dialog .button-group input.button:not(.primary){',
+                '  border:1px solid var(--sb-border)!important;',
+                '  background:var(--sb-surface)!important;color:var(--sb-text-muted)!important;',
                 '}',
                 /* Outer dialog shell */
                 '.ui-dialog,.ui-widget.ui-dialog{',
