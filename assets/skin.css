@@ -491,12 +491,12 @@ ul#admin_menu_logout_link {
 
 .sb-user-dropdown-header {
   padding: 14px 18px 12px;
-  background: #f9fafb;
+  background: var(--sb-surface-muted);
 }
 
 .sb-user-dropdown-label {
   font-size: 11px;
-  color: #9ca3af;
+  color: var(--sb-text-muted);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -527,7 +527,7 @@ ul#admin_menu_logout_link {
 }
 
 .sb-user-dropdown-logout:hover {
-  background: #fef2f2;
+  background: color-mix(in srgb, var(--sb-danger) 12%, var(--sb-surface));
 }
 
 .sb-mobile-menu-btn {
@@ -3076,7 +3076,7 @@ body.login .sb-navbar {
 }
 
 body.login #wrap {
-  background: #fff !important;
+  background: var(--sb-surface) !important;
   border-radius: 10px;
   padding: 34px 38px 36px !important;
   box-shadow: var(--sb-shadow-lg);
@@ -3285,6 +3285,15 @@ body.login .sb-login-brand-symbol {
   background: rgba(30, 135, 240, 0.1);
   color: var(--sb-accent);
   font-size: 44px;
+}
+
+body.login .sb-login-subtitle {
+  margin: 0 auto 26px;
+  color: var(--sb-text) !important;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.25;
+  text-align: center;
 }
 
 .sb-action-icon,
