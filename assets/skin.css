@@ -5791,31 +5791,67 @@ body.sb-settings-admin-page .sb-settings-header .sb-page-title {
   font-size: 30px;
   font-weight: 900;
   line-height: 1.12;
+  color: var(--sb-text) !important;
 }
 
-.sb-settings-card {
-  border-color: #dfe7f1 !important;
-  border-radius: 8px !important;
-  box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.03),
-    0 14px 34px rgba(15, 23, 42, 0.05) !important;
+/* Theme-aware final overrides for settings page. */
+body.sb-settings-admin-page .uk-card-default,
+body.sb-settings-admin-page .sb-settings-card {
+  background: var(--sb-card-bg) !important;
+  border-color: var(--sb-border) !important;
+  color: var(--sb-text);
+  box-shadow: var(--sb-shadow) !important;
+}
+
+body.sb-settings-admin-page .sb-settings-subtitle,
+body.sb-settings-admin-page .sb-settings-label .uk-text-meta,
+body.sb-settings-admin-page .sb-theme-preset-copy small,
+body.sb-settings-admin-page .sb-colour-chips-label {
+  color: var(--sb-text-muted) !important;
+}
+
+body.sb-settings-admin-page .sb-theme-section-header h3,
+body.sb-settings-admin-page .sb-settings-label .uk-form-label,
+body.sb-settings-admin-page .sb-theme-preset-copy strong {
+  color: var(--sb-text) !important;
+}
+
+body.sb-settings-admin-page .sb-theme-preset {
+  background: var(--sb-surface) !important;
+  border-color: var(--sb-border) !important;
+  color: var(--sb-text);
+}
+
+body.sb-settings-admin-page .sb-theme-section + .sb-theme-section,
+body.sb-settings-admin-page .sb-settings-actions {
+  border-color: var(--sb-border) !important;
+}
+
+body.sb-settings-admin-page .sb-colour-picker,
+body.sb-settings-admin-page .sb-colour-hex {
+  border-color: var(--sb-input-border) !important;
+  background: var(--sb-input-bg) !important;
+  color: var(--sb-input-text) !important;
+}
+
+body.sb-settings-admin-page .sb-settings-reset {
+  background: var(--sb-surface) !important;
+  border-color: var(--sb-border) !important;
+  color: var(--sb-text-muted) !important;
+}
+
+body.sb-settings-admin-page .sb-settings-reset:hover {
+  border-color: var(--sb-accent) !important;
+  color: var(--sb-accent) !important;
+  background: var(--sb-accent-soft) !important;
+}
+
+body.sb-settings-admin-page .sb-settings-submit {
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--sb-accent) 22%, transparent) !important;
 }
 
 .sb-settings-form {
   padding: 24px !important;
-}
-
-.sb-colour-picker,
-.sb-colour-hex {
-  border-color: #dfe7f1 !important;
-  border-radius: 8px !important;
-}
-
-.sb-settings-submit {
-  min-height: 42px !important;
-  border-radius: 8px !important;
-  font-weight: 900 !important;
-  box-shadow: 0 10px 22px rgba(30, 135, 240, 0.2) !important;
 }
 
 @media (max-width: 900px) {
