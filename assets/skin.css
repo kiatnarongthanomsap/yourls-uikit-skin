@@ -4711,46 +4711,70 @@ body.public-site.public-result {
   --sb-public-max: 720px;
 }
 
+body.public-site.public-result #wrap {
+  display: grid !important;
+  justify-items: center !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: center !important;
+}
+
 body.public-site .sb-public-result-landing {
-  display: grid;
-  grid-template-columns: 1fr;
-  width: var(--sb-public-rail);
-  max-width: var(--sb-public-max);
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: none;
+  margin-inline: auto;
   padding: 48px 0 56px;
   gap: 22px;
-  align-items: stretch;
   box-sizing: border-box;
+  text-align: center;
 }
 
 body.public-site .sb-public-result-landing .sb-public-result-hero {
+  width: min(var(--sb-public-max), calc(100vw - 48px));
+  max-width: var(--sb-public-max);
+  margin-left: auto;
+  margin-right: auto;
   padding: 0;
   text-align: center;
 }
 
 body.public-site .sb-public-result-landing .sb-public-title {
   font-size: clamp(28px, 4vw, 42px);
+  margin-left: auto !important;
+  margin-right: auto !important;
+  text-align: center !important;
 }
 
 body.public-site .sb-public-result-landing .sb-public-subtitle {
-  margin-left: auto;
-  margin-right: auto;
+  margin-left: auto !important;
+  margin-right: auto !important;
   max-width: 480px;
+  text-align: center !important;
 }
 
 body.public-site .sb-public-result-landing .sb-public-result-card {
   margin-top: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 
 body.public-site .sb-public-result-card {
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
-  width: 100% !important;
-  max-width: none !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-sizing: border-box;
+  width: min(var(--sb-public-max), calc(100vw - 48px)) !important;
+  max-width: var(--sb-public-max) !important;
   margin-top: 0 !important;
   margin-bottom: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
   padding: 28px;
   border: 1px solid color-mix(in srgb, var(--sb-border) 82%, white);
   border-radius: 8px;
@@ -4758,6 +4782,24 @@ body.public-site .sb-public-result-card {
   box-shadow:
     0 1px 2px rgba(15, 23, 42, 0.04),
     0 18px 44px rgba(15, 23, 42, 0.08);
+}
+
+body.public-site .sb-public-result-card--existing {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+}
+
+body.public-site .sb-public-result-card:not(.sb-public-result-card--existing) .sb-public-result-icon {
+  margin-bottom: 4px;
+}
+
+body.public-site .sb-public-result-card:not(.sb-public-result-card--existing) .sb-public-result-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 body.public-site .sb-public-result-notice {
@@ -4793,10 +4835,6 @@ body.public-site .sb-public-result-icon {
   font-size: 24px;
   font-weight: 900;
   line-height: 1;
-}
-
-body.public-site .sb-public-result-card--existing {
-  grid-template-columns: 1fr;
 }
 
 body.public-site .sb-public-result-card--existing .sb-public-result-label {
@@ -4907,8 +4945,10 @@ body.public-site .sb-public-result-qr-download:hover {
 body.public-site .sb-public-result-actions {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 10px;
   margin-top: 18px;
+  width: 100%;
 }
 
 body.public-site .sb-public-result-open,
@@ -4932,6 +4972,15 @@ body.public-site .sb-public-result-another {
     border-color 0.15s ease,
     color 0.15s ease,
     box-shadow 0.15s ease;
+}
+
+body.public-site .sb-public-result-landing .sb-public-result-hero,
+body.public-site .sb-public-result-landing .sb-public-result-card {
+  text-align: center;
+}
+
+body.public-site .sb-public-result-landing.sb-public-result-landing--existing .sb-public-result-card {
+  text-align: left;
 }
 
 body.public-site .sb-public-result-btn-icon {
@@ -4967,6 +5016,7 @@ body.public-site .sb-public-result-copy:hover {
 
 body.public-site .sb-public-result-another {
   margin-top: 14px;
+  margin-inline: auto;
   border: 0;
   background: transparent;
   color: var(--sb-text-muted);
@@ -5081,7 +5131,9 @@ body.public-site .sb-public-note {
   body.public-site .sb-public-result-landing {
     width: 100% !important;
     max-width: none !important;
+    margin-inline: auto !important;
     padding: 30px 16px 34px;
+    box-sizing: border-box;
   }
 
   body.public-site .sb-public-result-hero {
@@ -5094,8 +5146,6 @@ body.public-site .sb-public-note {
     border-right: 0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
-    grid-template-columns: 1fr;
-    gap: 12px;
   }
 
   body.public-site .sb-public-result-icon {
@@ -5168,6 +5218,11 @@ body.public-site {
     linear-gradient(135deg, color-mix(in srgb, var(--sb-bg) 88%, white), #eef3f8 54%, #f8fafc) !important;
 }
 
+body.public-site.public-result {
+  --sb-public-max: 720px;
+  --sb-public-rail: min(100% - 48px, var(--sb-public-max));
+}
+
 body.public-site .sb-public-header {
   background: color-mix(in srgb, var(--sb-surface) 86%, transparent);
   border-bottom-color: color-mix(in srgb, var(--sb-border) 76%, transparent);
@@ -5222,9 +5277,15 @@ body.public-site .sb-public-copy {
   min-width: 0;
 }
 
-body.public-site .sb-public-hero {
+body.public-site .sb-public-landing .sb-public-hero {
   padding: 0;
   text-align: left;
+}
+
+body.public-site .sb-public-result-landing .sb-public-hero {
+  width: 100% !important;
+  max-width: 100% !important;
+  text-align: center !important;
 }
 
 body.public-site .sb-public-title {
@@ -6266,4 +6327,70 @@ body.sb-settings-admin-page .sb-settings-submit {
   body.sb-plugins-page #main_table {
     min-width: 880px;
   }
+}
+
+/* Public result — final centering overrides */
+body.public-site:has(.sb-public-result-landing) #wrap,
+body.public-site.public-result #wrap {
+  display: grid !important;
+  justify-items: center !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  text-align: center !important;
+}
+
+body.public-site:has(.sb-public-result-landing) .sb-public-result-landing,
+body.public-site.public-result .sb-public-result-landing {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  justify-self: center !important;
+}
+
+body.public-site:has(.sb-public-result-landing) .sb-public-result-landing .sb-public-result-hero,
+body.public-site.public-result .sb-public-result-landing .sb-public-result-hero,
+body.public-site:has(.sb-public-result-landing) .sb-public-result-card,
+body.public-site.public-result .sb-public-result-card {
+  width: min(var(--sb-public-max), calc(100vw - 48px)) !important;
+  max-width: var(--sb-public-max) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
+
+body.public-site:has(.sb-public-result-landing) .sb-public-result-landing .sb-public-hero,
+body.public-site.public-result .sb-public-result-landing .sb-public-hero {
+  width: min(var(--sb-public-max), calc(100vw - 48px)) !important;
+  max-width: var(--sb-public-max) !important;
+  text-align: center !important;
+}
+
+body.public-site:has(.sb-public-result-landing) .sb-public-result-landing .sb-public-title,
+body.public-site:has(.sb-public-result-landing) .sb-public-result-landing .sb-public-subtitle,
+body.public-site.public-result .sb-public-result-landing .sb-public-title,
+body.public-site.public-result .sb-public-result-landing .sb-public-subtitle {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  text-align: center !important;
+}
+
+body.public-site:has(.sb-public-result-landing) .sb-public-result-landing .sb-public-title,
+body.public-site.public-result .sb-public-result-landing .sb-public-title {
+  margin-bottom: 14px !important;
+}
+
+body.public-site:has(.sb-public-result-landing) .sb-public-result-landing .sb-public-subtitle,
+body.public-site.public-result .sb-public-result-landing .sb-public-subtitle {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
 }

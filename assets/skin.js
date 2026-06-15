@@ -1082,6 +1082,29 @@
 
             var shell = document.createElement('div');
             shell.className = 'sb-public-result-landing' + (isExisting ? ' sb-public-result-landing--existing' : '');
+            shell.style.width = '100%';
+            shell.style.maxWidth = 'none';
+            shell.style.marginLeft = 'auto';
+            shell.style.marginRight = 'auto';
+            shell.style.display = 'flex';
+            shell.style.flexDirection = 'column';
+            shell.style.alignItems = 'center';
+
+            var wrap = document.getElementById('wrap');
+            if (wrap) {
+                wrap.style.display = 'grid';
+                wrap.style.justifyItems = 'center';
+                wrap.style.width = '100%';
+                wrap.style.maxWidth = 'none';
+                wrap.style.margin = '0';
+                wrap.style.padding = '0';
+            }
+
+            resultCard.style.width = 'min(720px, calc(100vw - 48px))';
+            resultCard.style.maxWidth = '720px';
+            resultCard.style.marginLeft = 'auto';
+            resultCard.style.marginRight = 'auto';
+            resultCard.style.boxSizing = 'border-box';
 
             var hero = document.createElement('div');
             hero.className = 'sb-public-hero sb-public-result-hero';
