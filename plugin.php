@@ -3,7 +3,7 @@
 Plugin Name: YOURLS UI Kit Template
 Plugin URI: https://github.com/uglyeoin/yourls-ui-kit-template
 Description: A modern admin skin for YOURLS built on UIkit 3. Drop-in replacement for the dated default look. Re-skins the existing admin pages, adds a fresh dashboard, and tidies up forms, tables and error screens — all via hooks, no core files touched.
-Version: 1.0.173
+Version: 1.0.179
 Author: Square Balloon Ltd
 Author URI: https://squareballoon.co.uk
 */
@@ -34,7 +34,7 @@ function yourls_ui_kit_template_head() {
 }
 
 function yourls_ui_kit_template_version() {
-    return '1.0.173';
+    return '1.0.179';
 }
 
 function yourls_ui_kit_settings_managers() {
@@ -168,19 +168,79 @@ function yourls_ui_kit_theme_presets() {
             'description' => 'Current clean light interface.',
             'theme'       => yourls_ui_kit_default_theme(),
         ),
-        'dark' => array(
-            'label'       => 'Dark',
-            'description' => 'Deep navy dashboard style with indigo highlights.',
+        'forest' => array(
+            'label'       => 'Forest',
+            'description' => 'Professional green theme with soft natural contrast.',
             'theme'       => array(
-                'accent'        => '#6d72ff',
-                'background'    => '#101a32',
-                'surface'       => '#121d38',
-                'surface_muted' => '#1b294b',
-                'border'        => '#29395f',
-                'text'          => '#f8fafc',
-                'text_muted'    => '#a7b0cf',
-                'success'       => '#00a77d',
-                'danger'        => '#f05d7b',
+                'accent'        => '#047857',
+                'background'    => '#f1f7f3',
+                'surface'       => '#ffffff',
+                'surface_muted' => '#e7f2ec',
+                'border'        => '#c4d8cc',
+                'text'          => '#10231b',
+                'text_muted'    => '#5f7167',
+                'success'       => '#059669',
+                'danger'        => '#dc2626',
+            ),
+        ),
+        'slate' => array(
+            'label'       => 'Slate',
+            'description' => 'Calm cool-gray admin theme for long work sessions.',
+            'theme'       => array(
+                'accent'        => '#2563eb',
+                'background'    => '#f1f5f9',
+                'surface'       => '#ffffff',
+                'surface_muted' => '#e2e8f0',
+                'border'        => '#cbd5e1',
+                'text'          => '#0f172a',
+                'text_muted'    => '#64748b',
+                'success'       => '#059669',
+                'danger'        => '#dc2626',
+            ),
+        ),
+        'ocean' => array(
+            'label'       => 'Ocean',
+            'description' => 'Fresh blue and teal palette for web operations.',
+            'theme'       => array(
+                'accent'        => '#0891b2',
+                'background'    => '#eef9fb',
+                'surface'       => '#ffffff',
+                'surface_muted' => '#e0f2fe',
+                'border'        => '#bae6fd',
+                'text'          => '#0f172a',
+                'text_muted'    => '#486371',
+                'success'       => '#0d9488',
+                'danger'        => '#e11d48',
+            ),
+        ),
+        'rosewood' => array(
+            'label'       => 'Rosewood',
+            'description' => 'Warm restrained rose palette for focused admin work.',
+            'theme'       => array(
+                'accent'        => '#be123c',
+                'background'    => '#fbf7f8',
+                'surface'       => '#ffffff',
+                'surface_muted' => '#f8e8ec',
+                'border'        => '#ead0d8',
+                'text'          => '#1f1720',
+                'text_muted'    => '#765c66',
+                'success'       => '#15803d',
+                'danger'        => '#dc2626',
+            ),
+        ),
+        'graphite' => array(
+            'label'       => 'Graphite',
+            'description' => 'Neutral dark theme with restrained blue highlights.',
+            'theme'       => array(
+                'accent'        => '#60a5fa',
+                'background'    => '#111827',
+                'surface'       => '#1f2937',
+                'surface_muted' => '#273449',
+                'border'        => '#374151',
+                'text'          => '#f9fafb',
+                'text_muted'    => '#cbd5e1',
+                'success'       => '#34d399',
+                'danger'        => '#fb7185',
             ),
         ),
     );
@@ -714,139 +774,150 @@ function yourls_ui_kit_template_settings_page() {
       <div class="uk-card uk-card-default uk-card-body sb-settings-card<?php echo $can_save ? '' : ' sb-settings-card-readonly'; ?>">
         <form method="post" class="uk-form-stacked sb-settings-form">
           <input type="hidden" name="nonce" value="<?php echo $nonce; ?>" />
-          <div class="sb-theme-presets" aria-label="Theme presets">
-            <?php foreach ( $theme_presets as $preset_key => $preset ) :
-              $preset_theme = $preset['theme'];
-              $is_active = ( $preset_key === $active_preset );
-            ?>
-            <button
-              type="button"
-              class="sb-theme-preset<?php echo $is_active ? ' is-active' : ''; ?>"
-              data-preset="<?php echo htmlspecialchars( $preset_key ); ?>"
-              <?php echo $can_save ? '' : 'disabled'; ?>
-              aria-pressed="<?php echo $is_active ? 'true' : 'false'; ?>"
-            >
-              <span class="sb-theme-preset-preview" style="<?php echo htmlspecialchars( yourls_ui_kit_theme_inline_style( $preset_theme, '--preset-' ) ); ?>">
-                <span></span><span></span><span></span>
-              </span>
-              <span class="sb-theme-preset-copy">
-                <strong><?php echo htmlspecialchars( $preset['label'] ); ?></strong>
-                <small><?php echo htmlspecialchars( $preset['description'] ); ?></small>
-              </span>
-            </button>
-            <?php endforeach; ?>
-          </div>
-          <div class="sb-theme-builder">
-            <div class="sb-theme-fields">
-              <?php foreach ( $theme_fields as $key => $field ) :
-                $input_id = 'sb_theme_' . $key;
-                $hex_id = 'sb_theme_' . $key . '_hex';
-                $value = $theme[ $key ];
+          <div class="sb-theme-section sb-theme-section-presets">
+            <div class="sb-theme-section-header">
+              <h3>Theme presets</h3>
+            </div>
+            <div class="sb-theme-presets" aria-label="Theme presets">
+              <?php foreach ( $theme_presets as $preset_key => $preset ) :
+                $preset_theme = $preset['theme'];
+                $is_active = ( $preset_key === $active_preset );
               ?>
-              <div class="sb-settings-row">
-                <div class="sb-settings-label">
-                  <label class="uk-form-label" for="<?php echo htmlspecialchars( $input_id ); ?>"><?php echo htmlspecialchars( $field['label'] ); ?></label>
-                  <p class="uk-text-meta"><?php echo htmlspecialchars( $field['description'] ); ?></p>
-                </div>
-                <div class="uk-form-controls sb-colour-controls-wrap">
-                  <div class="sb-colour-controls">
-                    <input
-                      id="<?php echo htmlspecialchars( $input_id ); ?>"
-                      class="sb-colour-picker"
-                      name="sb_uikit_theme[<?php echo htmlspecialchars( $key ); ?>]"
-                      type="color"
-                      value="<?php echo htmlspecialchars( $value ); ?>"
-                      data-theme-key="<?php echo htmlspecialchars( $key ); ?>"
-                      data-default-color="<?php echo htmlspecialchars( strtolower( $field['default'] ) ); ?>"
-                      data-preview-var="--sb-preview-<?php echo htmlspecialchars( str_replace( '_', '-', $key ) ); ?>"
-                      data-hex-target="<?php echo htmlspecialchars( $hex_id ); ?>"
-                      <?php echo $can_save ? '' : 'disabled'; ?>
-                    />
-                    <input
-                      type="text"
-                      class="uk-input sb-colour-hex"
-                      value="<?php echo htmlspecialchars( $value ); ?>"
-                      id="<?php echo htmlspecialchars( $hex_id ); ?>"
-                      aria-label="<?php echo htmlspecialchars( $field['label'] . ' hex value' ); ?>"
-                      data-theme-key="<?php echo htmlspecialchars( $key ); ?>"
-                      data-default-color="<?php echo htmlspecialchars( strtolower( $field['default'] ) ); ?>"
-                      data-preview-var="--sb-preview-<?php echo htmlspecialchars( str_replace( '_', '-', $key ) ); ?>"
-                      data-picker-target="<?php echo htmlspecialchars( $input_id ); ?>"
-                      <?php echo $can_save ? '' : 'readonly'; ?>
-                    />
-                  </div>
-                  <?php if ( $key === 'accent' ) : ?>
-                  <div class="sb-colour-chips" role="listbox" aria-label="เลือกสี accent สำเร็จรูป">
-                    <span class="sb-colour-chips-label">สียอดนิยม</span>
-                    <div class="sb-colour-chips-row">
-                      <?php foreach ( $accent_presets as $preset_hex => $preset_label ) :
-                        $preset_hex = strtolower( $preset_hex );
-                        $is_active = ( $preset_hex === $accent_lower );
-                      ?>
-                      <button
-                        type="button"
-                        class="sb-colour-chip<?php echo $is_active ? ' is-active' : ''; ?>"
-                        <?php echo $can_save ? '' : 'disabled '; ?>
-                        data-color="<?php echo htmlspecialchars( $preset_hex ); ?>"
-                        data-theme-key="accent"
-                        style="--chip-color: <?php echo htmlspecialchars( $preset_hex ); ?>"
-                        title="<?php echo htmlspecialchars( $preset_label . ' (' . strtoupper( $preset_hex ) . ')' ); ?>"
-                        aria-label="<?php echo htmlspecialchars( $preset_label ); ?>"
-                        role="option"
-                        aria-selected="<?php echo $is_active ? 'true' : 'false'; ?>"
-                      ></button>
-                      <?php endforeach; ?>
-                    </div>
-                  </div>
-                  <?php endif; ?>
-                </div>
-              </div>
+              <button
+                type="button"
+                class="sb-theme-preset<?php echo $is_active ? ' is-active' : ''; ?>"
+                data-preset="<?php echo htmlspecialchars( $preset_key ); ?>"
+                <?php echo $can_save ? '' : 'disabled'; ?>
+                aria-pressed="<?php echo $is_active ? 'true' : 'false'; ?>"
+              >
+                <span class="sb-theme-preset-preview" style="<?php echo htmlspecialchars( yourls_ui_kit_theme_inline_style( $preset_theme, '--preset-' ) ); ?>">
+                  <span></span><span></span><span></span>
+                </span>
+                <span class="sb-theme-preset-copy">
+                  <strong><?php echo htmlspecialchars( $preset['label'] ); ?></strong>
+                  <small><?php echo htmlspecialchars( $preset['description'] ); ?></small>
+                </span>
+              </button>
               <?php endforeach; ?>
             </div>
+          </div>
 
-            <div class="sb-settings-live-preview" style="<?php echo htmlspecialchars( $preview_style ); ?>">
-              <div class="sb-preview-browser">
-                <div class="sb-preview-nav">
-                  <div class="sb-preview-brand">
-                    <span class="sb-preview-logo"></span>
-                    <span>apps2.coop.ku.ac.th</span>
+          <div class="sb-theme-section sb-theme-section-custom">
+            <div class="sb-theme-section-header">
+              <h3>Custom colours</h3>
+            </div>
+            <div class="sb-theme-builder">
+              <div class="sb-theme-fields">
+                <?php foreach ( $theme_fields as $key => $field ) :
+                  $input_id = 'sb_theme_' . $key;
+                  $hex_id = 'sb_theme_' . $key . '_hex';
+                  $value = $theme[ $key ];
+                ?>
+                <div class="sb-settings-row">
+                  <div class="sb-settings-label">
+                    <label class="uk-form-label" for="<?php echo htmlspecialchars( $input_id ); ?>"><?php echo htmlspecialchars( $field['label'] ); ?></label>
+                    <p class="uk-text-meta"><?php echo htmlspecialchars( $field['description'] ); ?></p>
                   </div>
-                  <div class="sb-preview-tabs">
-                    <span>Dashboard</span>
-                    <span class="is-active">Links</span>
-                    <span>Settings</span>
+                  <div class="uk-form-controls sb-colour-controls-wrap">
+                    <div class="sb-colour-controls">
+                      <input
+                        id="<?php echo htmlspecialchars( $input_id ); ?>"
+                        class="sb-colour-picker"
+                        name="sb_uikit_theme[<?php echo htmlspecialchars( $key ); ?>]"
+                        type="color"
+                        value="<?php echo htmlspecialchars( $value ); ?>"
+                        data-theme-key="<?php echo htmlspecialchars( $key ); ?>"
+                        data-default-color="<?php echo htmlspecialchars( strtolower( $field['default'] ) ); ?>"
+                        data-preview-var="--sb-preview-<?php echo htmlspecialchars( str_replace( '_', '-', $key ) ); ?>"
+                        data-hex-target="<?php echo htmlspecialchars( $hex_id ); ?>"
+                        <?php echo $can_save ? '' : 'disabled'; ?>
+                      />
+                      <input
+                        type="text"
+                        class="uk-input sb-colour-hex"
+                        value="<?php echo htmlspecialchars( $value ); ?>"
+                        id="<?php echo htmlspecialchars( $hex_id ); ?>"
+                        aria-label="<?php echo htmlspecialchars( $field['label'] . ' hex value' ); ?>"
+                        data-theme-key="<?php echo htmlspecialchars( $key ); ?>"
+                        data-default-color="<?php echo htmlspecialchars( strtolower( $field['default'] ) ); ?>"
+                        data-preview-var="--sb-preview-<?php echo htmlspecialchars( str_replace( '_', '-', $key ) ); ?>"
+                        data-picker-target="<?php echo htmlspecialchars( $input_id ); ?>"
+                        <?php echo $can_save ? '' : 'readonly'; ?>
+                      />
+                    </div>
+                    <?php if ( $key === 'accent' ) : ?>
+                    <div class="sb-colour-chips" role="listbox" aria-label="เลือกสี accent สำเร็จรูป">
+                      <span class="sb-colour-chips-label">สียอดนิยม</span>
+                      <div class="sb-colour-chips-row">
+                        <?php foreach ( $accent_presets as $preset_hex => $preset_label ) :
+                          $preset_hex = strtolower( $preset_hex );
+                          $is_active = ( $preset_hex === $accent_lower );
+                        ?>
+                        <button
+                          type="button"
+                          class="sb-colour-chip<?php echo $is_active ? ' is-active' : ''; ?>"
+                          <?php echo $can_save ? '' : 'disabled '; ?>
+                          data-color="<?php echo htmlspecialchars( $preset_hex ); ?>"
+                          data-theme-key="accent"
+                          style="--chip-color: <?php echo htmlspecialchars( $preset_hex ); ?>"
+                          title="<?php echo htmlspecialchars( $preset_label . ' (' . strtoupper( $preset_hex ) . ')' ); ?>"
+                          aria-label="<?php echo htmlspecialchars( $preset_label ); ?>"
+                          role="option"
+                          aria-selected="<?php echo $is_active ? 'true' : 'false'; ?>"
+                        ></button>
+                        <?php endforeach; ?>
+                      </div>
+                    </div>
+                    <?php endif; ?>
                   </div>
-                  <span class="sb-preview-user">kt</span>
                 </div>
-                <div class="sb-preview-main">
-                  <div class="sb-preview-heading">
-                    <span></span>
-                    <strong>Short links</strong>
-                  </div>
-                  <div class="sb-preview-input-row">
-                    <span></span>
-                    <button type="button">Shorten</button>
-                  </div>
-                  <div class="sb-preview-card">
-                    <div class="sb-preview-table-head">
-                      <span>Short URL</span>
-                      <span>Destination</span>
-                      <span>Clicks</span>
+                <?php endforeach; ?>
+              </div>
+
+              <div class="sb-settings-live-preview" style="<?php echo htmlspecialchars( $preview_style ); ?>">
+                <div class="sb-preview-browser">
+                  <div class="sb-preview-nav">
+                    <div class="sb-preview-brand">
+                      <span class="sb-preview-logo"></span>
+                      <span>apps2.coop.ku.ac.th</span>
                     </div>
-                    <div class="sb-preview-table-row">
-                      <span class="sb-preview-link">kus.cc/demo</span>
-                      <span class="sb-preview-muted">https://example.com/campaign</span>
-                      <strong>128</strong>
+                    <div class="sb-preview-tabs">
+                      <span>Dashboard</span>
+                      <span class="is-active">Links</span>
+                      <span>Settings</span>
                     </div>
-                    <div class="sb-preview-table-row">
-                      <span class="sb-preview-link">kus.cc/docs</span>
-                      <span class="sb-preview-muted">https://example.com/docs</span>
-                      <strong>42</strong>
-                    </div>
+                    <span class="sb-preview-user">kt</span>
                   </div>
-                  <div class="sb-preview-status-row">
-                    <span class="sb-preview-success">Saved</span>
-                    <span class="sb-preview-danger">Delete</span>
+                  <div class="sb-preview-main">
+                    <div class="sb-preview-heading">
+                      <span></span>
+                      <strong>Short links</strong>
+                    </div>
+                    <div class="sb-preview-input-row">
+                      <span></span>
+                      <button type="button">Shorten</button>
+                    </div>
+                    <div class="sb-preview-card">
+                      <div class="sb-preview-table-head">
+                        <span>Short URL</span>
+                        <span>Destination</span>
+                        <span>Clicks</span>
+                      </div>
+                      <div class="sb-preview-table-row">
+                        <span class="sb-preview-link">kus.cc/demo</span>
+                        <span class="sb-preview-muted">https://example.com/campaign</span>
+                        <strong>128</strong>
+                      </div>
+                      <div class="sb-preview-table-row">
+                        <span class="sb-preview-link">kus.cc/docs</span>
+                        <span class="sb-preview-muted">https://example.com/docs</span>
+                        <strong>42</strong>
+                      </div>
+                    </div>
+                    <div class="sb-preview-status-row">
+                      <span class="sb-preview-success">Saved</span>
+                      <span class="sb-preview-danger">Delete</span>
+                    </div>
                   </div>
                 </div>
               </div>
