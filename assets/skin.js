@@ -199,6 +199,13 @@
     ready(function () {
         sbApplyFieldClass(document);
 
+        var footer = document.getElementById('footer');
+        if (footer && !footer.classList.contains('sb-login-footer')) {
+            var footerText = footer.textContent || '';
+            var footerVersion = footerText.match(/v\s*([\d.]+)/i);
+            footer.textContent = 'Powered by YOURLS' + (footerVersion ? ' v ' + footerVersion[1] : '');
+        }
+
         var pluginsTable = document.querySelector('#main_table tr.plugin, #main_table td.plugin_name, table#plugins_table');
         var isPluginsPage = /\/plugins\.php$/.test(window.location.pathname) && !window.location.search.match(/[?&]page=/);
         if (pluginsTable || isPluginsPage) {
@@ -866,7 +873,7 @@
                     : null;
                 yourlsVersion = generatorMatch ? generatorMatch[1] : '';
             }
-            loginFooter.innerHTML = '<p>Powered by <a href="http://yourls.org/" title="YOURLS">YOURLS</a> v ' + yourlsVersion + '</p>';
+            loginFooter.textContent = 'Powered by YOURLS' + (yourlsVersion ? ' v ' + yourlsVersion : '');
             if (!loginFooter.parentNode) {
                 document.body.appendChild(loginFooter);
             }
