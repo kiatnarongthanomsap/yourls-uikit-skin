@@ -990,6 +990,49 @@
             titleEl.parentNode.insertBefore(hero, titleEl);
             hero.appendChild(titleEl);
             hero.appendChild(subtitle);
+            return hero;
+        }
+
+        function publicBuildLandingLayout(hero, primaryEl, isResult) {
+            if (!hero || !primaryEl || document.querySelector('.sb-public-landing')) return;
+
+            var landing = document.createElement('section');
+            landing.className = 'sb-public-landing';
+
+            var copy = document.createElement('div');
+            copy.className = 'sb-public-copy';
+
+            var workspace = document.createElement('div');
+            workspace.className = 'sb-public-workspace';
+
+            var panel = document.createElement('aside');
+            panel.className = 'sb-public-insight-panel';
+            panel.setAttribute('aria-label', 'Short link workflow');
+            panel.innerHTML = [
+                '<div class="sb-public-panel-top">',
+                '  <span class="sb-public-panel-icon" aria-hidden="true">' + sbIconHtml('bolt', 'sb-public-panel-symbol', 24) + '</span>',
+                '  <div>',
+                '    <strong>' + (isResult ? 'Ready to share' : 'Fast internal sharing') + '</strong>',
+                '    <span>' + (isResult ? 'Copy the new short URL or open it now.' : 'Create a clean LINK-KUSCC URL for documents, chats and QR codes.') + '</span>',
+                '  </div>',
+                '</div>',
+                '<div class="sb-public-link-preview">',
+                '  <span>apps2.coop.ku.ac.th</span>',
+                '  <strong>/go/your-link</strong>',
+                '</div>',
+                '<div class="sb-public-step-list">',
+                '  <span><b>1</b> Paste URL</span>',
+                '  <span><b>2</b> Pick keyword</span>',
+                '  <span><b>3</b> Share link</span>',
+                '</div>'
+            ].join('');
+
+            hero.parentNode.insertBefore(landing, hero);
+            landing.appendChild(copy);
+            copy.appendChild(hero);
+            landing.appendChild(workspace);
+            workspace.appendChild(primaryEl);
+            workspace.appendChild(panel);
         }
 
         function publicHideNote() {
@@ -1042,6 +1085,8 @@
                     if (submitRow) submitRow.classList.add('sb-public-submit-row');
                     if (submitField.tagName === 'INPUT') {
                         sbEnhanceInputButton(submitField, 'link', 'Shorten', 'sb-input-btn-wrap--public-submit');
+                        var submitWrap = submitField.closest('.sb-input-btn-wrap');
+                        if (submitWrap) submitWrap.classList.add('sb-input-btn-wrap--public-submit');
                     }
                 }
 
@@ -1130,7 +1175,8 @@
                     publicTitle = h2;
                 }
             });
-            if (publicTitle) publicBuildHero(publicTitle, false);
+            var publicHero = publicTitle ? publicBuildHero(publicTitle, false) : null;
+            if (publicHero && shortenForm) publicBuildLandingLayout(publicHero, shortenForm, false);
 
             document.querySelectorAll('h2').forEach(function (h2) {
                 var text = h2.textContent.trim().toLowerCase();
