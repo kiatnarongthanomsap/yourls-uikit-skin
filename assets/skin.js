@@ -474,9 +474,74 @@
             kwLabel.innerHTML = '<strong>Custom short URL</strong>';
         }
 
-        // Rename "Shorten The URL" button → "Shorten" + icon
+        // Rename "Shorten The URL" button → "Shorten" + icon (after title row exists)
         var addBtn = document.getElementById('add-button');
-        if (addBtn) sbEnhanceInputButton(addBtn, 'link', 'Shorten', 'sb-input-btn-wrap--add');
+
+        function sbSetupAdminTitleField() {
+            if (document.getElementById('add-title')) {
+                return document.querySelector('.sb-new-url-title-row');
+            }
+
+            var titleRow = document.createElement('div');
+            titleRow.className = 'sb-new-url-title-row sb-new-url-field sb-new-url-field--title';
+
+            var titleLabel = document.createElement('label');
+            titleLabel.setAttribute('for', 'add-title');
+            titleLabel.innerHTML = '<strong>Title (optional)</strong>';
+
+            var titleInput = document.createElement('input');
+            titleInput.type = 'text';
+            titleInput.id = 'add-title';
+            titleInput.name = 'title';
+            titleInput.className = 'text';
+            titleInput.setAttribute('autocomplete', 'off');
+
+            titleRow.appendChild(titleLabel);
+            titleRow.appendChild(titleInput);
+            return titleRow;
+        }
+
+        function sbLayoutAdminUrlForm(grid) {
+            if (!grid || grid.dataset.sbUrlLayoutDone) return;
+
+            var urlLabel = grid.querySelector('label[for="add-url"]');
+            var urlInput = document.getElementById('add-url');
+            var kwLabel = grid.querySelector('label[for="add-keyword"]');
+            var kwInput = document.getElementById('add-keyword');
+            var nonce = document.getElementById('nonce-add');
+            var submitWrap = grid.querySelector('.sb-input-btn-wrap--add');
+            var titleRow = grid.querySelector('.sb-new-url-title-row') || sbSetupAdminTitleField();
+
+            if (!urlLabel || !urlInput || !kwLabel || !kwInput || !titleRow) return;
+
+            var mainRow = document.createElement('div');
+            mainRow.className = 'sb-new-url-row sb-new-url-row--main';
+
+            var urlField = document.createElement('div');
+            urlField.className = 'sb-new-url-field sb-new-url-field--url';
+
+            var kwField = document.createElement('div');
+            kwField.className = 'sb-new-url-field sb-new-url-field--kw';
+
+            var submitCell = document.createElement('div');
+            submitCell.className = 'sb-new-url-submit';
+
+            urlField.appendChild(urlLabel);
+            urlField.appendChild(urlInput);
+            kwField.appendChild(kwLabel);
+            kwField.appendChild(kwInput);
+            mainRow.appendChild(urlField);
+            mainRow.appendChild(kwField);
+            mainRow.appendChild(titleRow);
+            if (submitWrap) submitCell.appendChild(submitWrap);
+            mainRow.appendChild(submitCell);
+
+            grid.textContent = '';
+            grid.appendChild(mainRow);
+            if (nonce) grid.appendChild(nonce);
+
+            grid.dataset.sbUrlLayoutDone = '1';
+        }
 
         // Normalize the add URL form so CSS grid can make it responsive.
         var newUrlWrap = document.getElementById('new_url');
@@ -485,8 +550,9 @@
             var newUrlShell = newUrlWrap.querySelector(':scope > div');
             if (newUrlShell) newUrlShell.classList.add('sb-new-url-shell');
         }
+        var newUrlGrid = null;
         if (newUrlForm) {
-            var newUrlGrid = newUrlForm.querySelector('div');
+            newUrlGrid = newUrlForm.querySelector('div');
             if (newUrlGrid) {
                 newUrlGrid.classList.add('sb-new-url-grid');
                 Array.prototype.slice.call(newUrlGrid.childNodes).forEach(function (node) {
@@ -496,6 +562,8 @@
                 });
             }
         }
+        if (addBtn) sbEnhanceInputButton(addBtn, 'link', 'Shorten', 'sb-input-btn-wrap--add');
+        sbLayoutAdminUrlForm(newUrlGrid);
         var urlLabel = document.querySelector('label[for="add-url"]');
         if (urlLabel) {
             urlLabel.innerHTML = '<strong>Enter URL</strong>';
@@ -509,6 +577,8 @@
         }
         var kwInput = document.getElementById('add-keyword');
         if (kwInput) kwInput.removeAttribute('size');
+        var KEYWORD_MAX_LENGTH = 20;
+        var keywordLengthMessage = 'Custom short URL must be ' + KEYWORD_MAX_LENGTH + ' characters or fewer.';
         var RESERVED_KEYWORDS = ['kuscc'];
 
         function isReservedKeyword(value) {
@@ -518,18 +588,65 @@
             });
         }
 
-        var reservedMessage = 'Custom short URLs cannot contain "kuscc" because it duplicates the hosting name.';
+        function getKeywordValidationMessage(value) {
+            value = (value || '').trim();
+            if (isReservedKeyword(value)) return reservedMessage;
+            if (value.length > KEYWORD_MAX_LENGTH) return keywordLengthMessage;
+            return '';
+        }
 
-        function showReservedKeywordMessage() {
-            if (typeof window.feedback === 'function') {
-                window.feedback(reservedMessage, 'fail', 10000);
-            } else if (typeof showToast === 'function') {
-                showToast(reservedMessage, 'fail');
+        function refreshKeywordValidation(input) {
+            if (!input) return false;
+            var message = getKeywordValidationMessage(input.value);
+            input.setCustomValidity(message);
+            if (message) {
+                input.classList.add('sb-input-error');
+            } else {
+                input.classList.remove('sb-input-error');
+            }
+            return !!message;
+        }
+
+        function sbSetupKeywordFieldRules(input, form) {
+            if (!input || input.dataset.sbKwRulesDone) return;
+            input.dataset.sbKwRulesDone = '1';
+            input.setAttribute('maxlength', String(KEYWORD_MAX_LENGTH));
+
+            input.addEventListener('input', function () {
+                refreshKeywordValidation(input);
+            });
+
+            if (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!refreshKeywordValidation(input)) return;
+                    event.preventDefault();
+                    showKeywordValidationMessage(input);
+                }, true);
             }
 
-            if (!kwInput) return;
-            kwInput.classList.add('sb-input-error');
-            kwInput.focus();
+            refreshKeywordValidation(input);
+        }
+
+        var reservedMessage = 'Custom short URLs cannot contain "kuscc" because it duplicates the hosting name.';
+
+        function showKeywordValidationMessage(input) {
+            input = input || kwInput;
+            var message = input ? getKeywordValidationMessage(input.value) : reservedMessage;
+            if (!message) return;
+
+            if (typeof window.feedback === 'function') {
+                window.feedback(message, 'fail', 10000);
+            } else if (typeof showToast === 'function') {
+                showToast(message, 'fail');
+            }
+
+            if (!input) return;
+            input.classList.add('sb-input-error');
+            input.focus();
+        }
+
+        function showReservedKeywordMessage() {
+            showKeywordValidationMessage(kwInput);
         }
 
         function clearReservedKeywordMessage() {
@@ -537,11 +654,7 @@
         }
 
         function refreshReservedKeywordState() {
-            if (!kwInput) return false;
-            var reserved = isReservedKeyword(kwInput.value);
-            kwInput.setCustomValidity(reserved ? reservedMessage : '');
-            if (!reserved) clearReservedKeywordMessage();
-            return reserved;
+            return refreshKeywordValidation(kwInput);
         }
 
         function stopReservedKeywordAction(event, showMessage) {
@@ -556,12 +669,7 @@
         }
 
         if (kwInput) {
-            refreshReservedKeywordState();
-            kwInput.addEventListener('input', refreshReservedKeywordState);
-        }
-
-        if (newUrlForm && kwInput) {
-            newUrlForm.addEventListener('submit', stopReservedKeywordAction, true);
+            sbSetupKeywordFieldRules(kwInput, newUrlForm);
         }
 
         if (addBtn && kwInput) {
@@ -572,13 +680,62 @@
             if (typeof window.add_link !== 'function' || window.add_link.sbReservedWrapped) {
                 return typeof window.add_link === 'function';
             }
+            if (typeof window.jQuery === 'undefined') return false;
 
+            var $ = window.jQuery;
             var originalAddLink = window.add_link;
             window.add_link = function () {
                 if (stopReservedKeywordAction(null, true)) return false;
-                return originalAddLink.apply(this, arguments);
+                if ($('#add-button').hasClass('disabled')) return false;
+
+                var newurl = $('#add-url').val();
+                var nonce = $('#nonce-add').val();
+                if (!newurl || newurl === 'http://' || newurl === 'https://') return;
+
+                var keyword = $('#add-keyword').val();
+                var titleInput = document.getElementById('add-title');
+                var title = titleInput ? titleInput.value.trim() : '';
+                var nextid = parseInt($('#main_table tbody tr[id^="id-"]').length, 10) + 1;
+
+                add_loading('#add-button');
+                $.getJSON(
+                    ajaxurl,
+                    { action: 'add', url: newurl, keyword: keyword, title: title, nonce: nonce, rowid: nextid },
+                    function (data) {
+                        if (data.status === 'success') {
+                            $('#main_table tbody').prepend(data.html).trigger('update');
+                            $('#nourl_found').css('display', 'none');
+                            zebra_table();
+                            increment_counter();
+                            toggle_share_fill_boxes(data.url.url, data.shorturl, data.url.title);
+                        }
+
+                        add_link_reset();
+                        end_loading('#add-button');
+                        end_disable('#add-button');
+                        feedback(data.message, data.status);
+                    }
+                );
+                return false;
             };
             window.add_link.sbReservedWrapped = true;
+
+            if (typeof window.add_link_reset === 'function' && !window.add_link_reset.sbReservedWrapped) {
+                var originalReset = window.add_link_reset;
+                window.add_link_reset = function () {
+                    originalReset();
+                    var titleField = document.getElementById('add-title');
+                    if (titleField) {
+                        titleField.value = '';
+                        titleField.classList.remove('sb-title-suggested');
+                    }
+                    if (typeof window.sbAdminTitleResetTouched === 'function') {
+                        window.sbAdminTitleResetTouched();
+                    }
+                };
+                window.add_link_reset.sbReservedWrapped = true;
+            }
+
             return true;
         }
 
@@ -958,6 +1115,67 @@
 
         }
 
+        function sbSetupTitleSuggestion(urlInput, titleInput, getNonce) {
+            if (!urlInput || !titleInput || typeof window.jQuery === 'undefined' || !window.ajaxurl) return null;
+
+            var $ = window.jQuery;
+            var titleTouched = false;
+            var titleTimer = null;
+            var titleRequest = null;
+
+            function resolveNonce() {
+                if (typeof getNonce === 'function') {
+                    return getNonce();
+                }
+                return getNonce || '';
+            }
+
+            function applyTitleSuggestion(force) {
+                if (!force && titleTouched) return;
+
+                var url = urlInput.value.trim();
+                if (!url || url === 'http://' || url === 'https://') return;
+
+                var nonce = resolveNonce();
+                if (!nonce) return;
+
+                if (titleRequest && titleRequest.readyState !== 4) {
+                    titleRequest.abort();
+                }
+
+                titleRequest = $.getJSON(ajaxurl, {
+                    action: 'fetch_title',
+                    url: url,
+                    nonce: nonce
+                }, function (data) {
+                    titleRequest = null;
+                    if (!data || data.status !== 'success' || !data.title) return;
+                    if (!force && titleTouched) return;
+                    titleInput.value = data.title;
+                    titleInput.classList.add('sb-title-suggested');
+                    setTimeout(function () { titleInput.classList.remove('sb-title-suggested'); }, 1200);
+                });
+            }
+
+            titleInput.addEventListener('input', function () {
+                titleTouched = titleInput.value.trim().length > 0;
+                titleInput.classList.remove('sb-title-suggested');
+            });
+
+            urlInput.addEventListener('input', function () {
+                if (titleTimer) clearTimeout(titleTimer);
+                titleTimer = setTimeout(function () { applyTitleSuggestion(false); }, 500);
+            });
+            urlInput.addEventListener('blur', function () { applyTitleSuggestion(false); });
+
+            return {
+                resetTouched: function () {
+                    titleTouched = false;
+                },
+                suggest: applyTitleSuggestion
+            };
+        }
+
         function publicRestructureFieldRow(field, labelText, rowClass) {
             var row = field.closest('p, div');
             if (!row) return;
@@ -1279,9 +1497,24 @@
                 }
                 if (keywordField) {
                     publicRestructureKeywordRow(keywordField);
+                    sbSetupKeywordFieldRules(keywordField, shortenForm);
                 }
                 if (titleField) {
                     publicRestructureFieldRow(titleField, 'Title (optional)', 'sb-public-title-row');
+                }
+                if (urlField && titleField && window._sbPublicTitleNonce) {
+                    var publicNonceEl = document.getElementById('nonce-add');
+                    if (!publicNonceEl) {
+                        publicNonceEl = document.createElement('input');
+                        publicNonceEl.type = 'hidden';
+                        publicNonceEl.id = 'nonce-add';
+                        publicNonceEl.name = 'nonce';
+                        publicNonceEl.value = window._sbPublicTitleNonce;
+                        shortenForm.appendChild(publicNonceEl);
+                    }
+                    sbSetupTitleSuggestion(urlField, titleField, function () {
+                        return publicNonceEl.value;
+                    });
                 }
                 if (submitField) {
                     var submitRow = submitField.closest('p, div');
@@ -1340,15 +1573,15 @@
                         var segments = parsed.pathname.replace(/^\/|\/$/g, '').split('/').filter(Boolean);
                         for (var i = segments.length - 1; i >= 0; i--) {
                             var fromPath = publicCleanKeywordPart(segments[i]);
-                            if (fromPath && fromPath.length >= 4) return fromPath.substring(0, 20);
+                            if (fromPath && fromPath.length >= 4) return fromPath.substring(0, KEYWORD_MAX_LENGTH);
                         }
 
                         var fromTitle = publicCleanKeywordPart(parsed.searchParams.get('title') || parsed.searchParams.get('name') || parsed.searchParams.get('q') || '');
-                        if (fromTitle && fromTitle.length >= 4) return fromTitle.substring(0, 20);
+                        if (fromTitle && fromTitle.length >= 4) return fromTitle.substring(0, KEYWORD_MAX_LENGTH);
 
                         var fromHost = publicCleanKeywordPart(parsed.hostname.replace(/^www\./, '').split('.')[0]);
                         if (!fromHost) fromHost = 'link';
-                        return (fromHost.substring(0, 14) + publicHash(value)).substring(0, 20);
+                        return (fromHost.substring(0, 14) + publicHash(value)).substring(0, KEYWORD_MAX_LENGTH);
                     }
 
                     function publicApplySuggestion(force) {
@@ -2360,7 +2593,7 @@
                 });
 
                 if (candidates.length) {
-                    return candidates[0].keyword.substring(0, 20);
+                    return candidates[0].keyword.substring(0, KEYWORD_MAX_LENGTH);
                 }
 
                 var fallback = '';
@@ -2368,7 +2601,7 @@
                     fallback = cleanCandidate(parseUrl(url).hostname.replace(/^www\./, '').split('.')[0]);
                 } catch (e) {}
                 if (!fallback) fallback = 'link';
-                return (fallback.substring(0, 14) + stableHash(url)).substring(0, 20);
+                return (fallback.substring(0, 14) + stableHash(url)).substring(0, KEYWORD_MAX_LENGTH);
             }
 
             function applySuggestion(force) {
@@ -2399,6 +2632,22 @@
                 '}',
             ].join('\n');
             document.head.appendChild(s);
+        }());
+
+        // 6e. Admin title suggestion — fetch page title from URL for the add form.
+        (function () {
+            var adminTitleSuggestion = sbSetupTitleSuggestion(
+                document.getElementById('add-url'),
+                document.getElementById('add-title'),
+                function () {
+                    var nonceEl = document.getElementById('nonce-add');
+                    return nonceEl ? nonceEl.value : '';
+                }
+            );
+
+            if (adminTitleSuggestion) {
+                window.sbAdminTitleResetTouched = adminTitleSuggestion.resetTouched;
+            }
         }());
 
         // 7. Wrap the page h2 + optional description paragraph (no uk-container — keeps alignment with tables).

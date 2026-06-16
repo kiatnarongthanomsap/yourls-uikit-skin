@@ -754,6 +754,20 @@ main > h2 {
   font-size: 14px;
 }
 
+.sb-settings-version {
+  margin: 0;
+  padding: 6px 12px;
+  border: 1px solid var(--sb-border);
+  border-radius: 999px;
+  background: var(--sb-surface-muted);
+  color: var(--sb-text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
 .sb-settings-alert {
   margin: 0 0 16px !important;
   border-radius: 8px;
@@ -970,7 +984,7 @@ main > h2 {
 }
 
 .sb-colour-chips {
-  display: flex;
+  display: none;
   flex-direction: column;
   gap: 8px;
 }
@@ -1535,6 +1549,7 @@ body.sb-plugins-readonly #main_table td.actions a {
 /* ---------- The "new link" form (top of index.php) ---------- */
 
 #new_url {
+  --sb-add-btn-width: 118px;
   background: var(--sb-surface);
   border: 1px solid var(--sb-border);
   border-radius: var(--sb-radius);
@@ -1566,16 +1581,54 @@ body.sb-plugins-readonly #main_table td.actions a {
 #new_url_form > div,
 #new_url .sb-new-url-grid {
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) minmax(140px, 220px) auto;
-  grid-template-areas:
-    "url-label kw-label ."
-    "url-input kw-input submit";
-  gap: 8px 12px;
+  grid-template-columns: minmax(0, calc(50% + var(--sb-add-btn-width) / 2 - 10px)) minmax(0, 1fr) minmax(0, 1fr) var(--sb-add-btn-width);
+  gap: 8px 10px;
   align-items: end;
   margin: 0;
   padding: 0;
   width: 100%;
   box-sizing: border-box;
+}
+
+#new_url #nonce-add {
+  display: none !important;
+}
+
+#new_url .sb-new-url-row {
+  display: contents;
+}
+
+#new_url .sb-new-url-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+#new_url .sb-new-url-field--url {
+  grid-column: 1;
+}
+
+#new_url .sb-new-url-field--kw {
+  grid-column: 2;
+}
+
+#new_url .sb-new-url-field--title,
+#new_url .sb-new-url-title-row {
+  grid-column: 3;
+}
+
+#new_url .sb-new-url-submit {
+  grid-column: 4;
+  display: flex;
+  align-items: flex-end;
+  min-width: 0;
+}
+
+#new_url .sb-new-url-submit .sb-input-btn-wrap--add {
+  width: 100%;
+  min-width: 0;
+  max-width: var(--sb-add-btn-width);
+  white-space: nowrap;
 }
 
 #new_url label {
@@ -1589,72 +1642,65 @@ body.sb-plugins-readonly #main_table td.actions a {
   margin: 0;
 }
 
-#new_url label[for="add-url"] {
-  grid-area: url-label;
-}
-
-#new_url #add-url {
-  grid-area: url-input;
-  width: 100% !important;
-  min-width: 0;
-}
-
 #new_url label[for="add-keyword"] {
-  grid-area: kw-label;
   margin-left: 0 !important;
 }
 
-#new_url #add-keyword {
-  grid-area: kw-input;
+#new_url #add-url,
+#new_url #add-keyword,
+#new_url #add-title,
+#new_url .sb-new-url-field input.text {
   width: 100% !important;
-  min-width: 0;
+  min-width: 0 !important;
+  max-width: none !important;
+  box-sizing: border-box;
 }
 
 #new_url #add-button {
-  grid-area: submit;
-  justify-self: stretch;
-  align-self: stretch;
-  width: auto !important;
-  min-width: 112px;
+  width: 100% !important;
+  min-width: 0;
   margin: 0 !important;
   box-sizing: border-box;
 }
 
-#add-url,
-#new_url #add-url {
-  width: 100% !important;
-  max-width: none !important;
-  min-width: 0 !important;
-}
-#add-keyword,
-#new_url #add-keyword {
-  width: 100% !important;
-  max-width: none !important;
-  min-width: 0 !important;
-}
-#add-title {
-  flex: 1 1 180px;
+#add-title.sb-title-suggested,
+#new_url input[name="title"].sb-title-suggested,
+.sb-public-form input[name="title"].sb-title-suggested {
+  border-color: var(--sb-accent) !important;
+  box-shadow: 0 0 0 3px var(--sb-accent-ring) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   #new_url p,
   #new_url_form > div,
   #new_url .sb-new-url-grid {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "url-label url-label"
-      "url-input url-input"
-      "kw-label kw-label"
-      "kw-input submit";
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  #new_url #add-button,
-  #new_url .sb-input-btn-wrap--add {
-    min-width: 104px;
+  #new_url .sb-new-url-field--url {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  #new_url .sb-new-url-field--kw {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  #new_url .sb-new-url-field--title,
+  #new_url .sb-new-url-title-row {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  #new_url .sb-new-url-submit {
+    grid-column: 2;
+    grid-row: 2;
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 700px) {
   #new_url {
     padding: 14px 16px;
   }
@@ -1663,19 +1709,24 @@ body.sb-plugins-readonly #main_table td.actions a {
   #new_url_form > div,
   #new_url .sb-new-url-grid {
     grid-template-columns: 1fr;
-    grid-template-areas:
-      "url-label"
-      "url-input"
-      "kw-label"
-      "kw-input"
-      "submit";
     gap: 8px;
   }
 
-  #new_url #add-button,
-  #new_url .sb-input-btn-wrap--add {
+  #new_url .sb-new-url-field--url,
+  #new_url .sb-new-url-field--kw,
+  #new_url .sb-new-url-field--title,
+  #new_url .sb-new-url-title-row,
+  #new_url .sb-new-url-submit {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  #new_url .sb-new-url-submit .sb-input-btn-wrap--add,
+  #new_url #add-button {
     width: 100% !important;
     min-width: 0;
+    max-width: none;
+    margin-left: 0;
   }
 }
 
@@ -1767,16 +1818,7 @@ input[value="Delete"] {
   text-align: center;
 }
 
-#new_url .sb-input-btn-wrap--add {
-  grid-area: submit;
-  justify-self: stretch;
-  align-self: stretch;
-  width: auto !important;
-  min-width: 112px;
-}
-
 #new_url .sb-input-btn-wrap--add > #add-button {
-  grid-area: auto;
   width: 100%;
   min-width: 0;
 }
@@ -5627,6 +5669,7 @@ body:not(.public-site):not(.login) #pagination {
 }
 
 body:not(.public-site):not(.login) #new_url:not(.sb-public-form) {
+  --sb-add-btn-width: 118px;
   width: min(100%, 1320px) !important;
   margin: 0 auto 18px !important;
   padding: 16px !important;
@@ -5640,16 +5683,48 @@ body:not(.public-site):not(.login) #new_url:not(.sb-public-form) p,
 body:not(.public-site):not(.login) #new_url:not(.sb-public-form) #new_url_form > div,
 body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-grid {
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) minmax(140px, 220px) auto;
-  grid-template-areas:
-    "url-label kw-label ."
-    "url-input kw-input submit";
-  gap: 8px 12px !important;
-  align-items: end;
-  justify-content: stretch;
+  grid-template-columns: minmax(0, calc(50% + var(--sb-add-btn-width) / 2 - 10px)) minmax(0, 1fr) minmax(0, 1fr) var(--sb-add-btn-width) !important;
+  gap: 8px 10px !important;
+  align-items: end !important;
   margin: 0 !important;
   padding: 0 !important;
-  width: 100%;
+  width: 100% !important;
+}
+
+body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-row {
+  display: contents !important;
+}
+
+body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-field--url {
+  grid-column: 1 !important;
+  grid-row: auto !important;
+}
+
+body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-field--kw {
+  grid-column: 2 !important;
+  grid-row: auto !important;
+}
+
+body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-field--title,
+body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-title-row {
+  grid-column: 3 !important;
+  grid-row: auto !important;
+}
+
+body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-submit {
+  grid-column: 4 !important;
+  grid-row: auto !important;
+  position: static !important;
+  width: auto !important;
+  max-width: none !important;
+}
+
+body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-submit .sb-input-btn-wrap--add {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: var(--sb-add-btn-width) !important;
+  margin-left: 0 !important;
+  position: static !important;
 }
 
 body:not(.public-site):not(.login) #new_url:not(.sb-public-form) label {
@@ -5790,12 +5865,28 @@ body:not(.public-site):not(.login) #filter_options input#submit-sort {
   body:not(.public-site):not(.login) #new_url:not(.sb-public-form) p,
   body:not(.public-site):not(.login) #new_url:not(.sb-public-form) #new_url_form > div,
   body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-grid {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "url-label url-label"
-      "url-input url-input"
-      "kw-label kw-label"
-      "kw-input submit";
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-field--url {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+  }
+
+  body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-field--kw {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+  }
+
+  body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-field--title,
+  body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-title-row {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+  }
+
+  body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-submit {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
   }
 }
 
@@ -5808,17 +5899,26 @@ body:not(.public-site):not(.login) #filter_options input#submit-sort {
   body:not(.public-site):not(.login) #new_url:not(.sb-public-form) p,
   body:not(.public-site):not(.login) #new_url:not(.sb-public-form) #new_url_form > div,
   body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-grid {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "url-label"
-      "url-input"
-      "kw-label"
-      "kw-input"
-      "submit";
+    grid-template-columns: 1fr !important;
+  }
+
+  body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-field--url,
+  body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-field--kw,
+  body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-field--title,
+  body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-title-row,
+  body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-submit {
+    grid-column: 1 !important;
+    grid-row: auto !important;
   }
 
   body:not(.public-site):not(.login) #new_url:not(.sb-public-form) #add-button {
     width: 100% !important;
+  }
+
+  body:not(.public-site):not(.login) #new_url:not(.sb-public-form) .sb-new-url-submit .sb-input-btn-wrap--add {
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
   }
 
   body:not(.public-site):not(.login) #new_url:not(.sb-public-form) label[for="add-keyword"] {
@@ -6258,6 +6358,7 @@ body.sb-settings-admin-page .sb-settings-card {
 }
 
 body.sb-settings-admin-page .sb-settings-subtitle,
+body.sb-settings-admin-page .sb-settings-version,
 body.sb-settings-admin-page .sb-settings-label .uk-text-meta,
 body.sb-settings-admin-page .sb-theme-preset-copy small,
 body.sb-settings-admin-page .sb-colour-chips-label {

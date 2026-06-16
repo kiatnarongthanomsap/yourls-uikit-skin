@@ -3,7 +3,7 @@
 Plugin Name: YOURLS UI Kit Template
 Plugin URI: https://github.com/uglyeoin/yourls-ui-kit-template
 Description: A modern admin skin for YOURLS built on UIkit 3. Drop-in replacement for the dated default look. Re-skins the existing admin pages, adds a fresh dashboard, and tidies up forms, tables and error screens — all via hooks, no core files touched.
-Version: 1.0.200
+Version: 1.0.214
 Author: Square Balloon Ltd
 Author URI: https://squareballoon.co.uk
 */
@@ -34,7 +34,7 @@ function yourls_ui_kit_template_head() {
 }
 
 function yourls_ui_kit_template_version() {
-    return '1.0.200';
+    return '1.0.214';
 }
 
 function yourls_ui_kit_settings_managers() {
@@ -498,6 +498,21 @@ function yourls_ui_kit_set_timezone() {
     } catch ( \Throwable $e ) {}
 }
 
+function yourls_ui_kit_keyword_max_length() {
+    return 20;
+}
+
+function yourls_ui_kit_is_keyword_too_long( $keyword ) {
+    $keyword = trim( (string) $keyword );
+    return $keyword !== '' && strlen( $keyword ) > yourls_ui_kit_keyword_max_length();
+}
+
+function yourls_ui_kit_keyword_length_message() {
+    return 'Custom short URL must be ' . yourls_ui_kit_keyword_max_length() . ' characters or fewer.';
+}
+
+yourls_add_filter( 'shunt_add_new_link', 'yourls_ui_kit_block_long_keyword', 9, 4 );
+yourls_add_filter( 'shunt_edit_link', 'yourls_ui_kit_block_long_edit_keyword', 9, 6 );
 yourls_add_filter( 'shunt_add_new_link', 'yourls_ui_kit_block_reserved_keyword', 10, 4 );
 yourls_add_filter( 'shunt_edit_link', 'yourls_ui_kit_block_reserved_edit_keyword', 10, 6 );
 yourls_add_filter( 'keyword_is_reserved', 'yourls_ui_kit_mark_reserved_keyword', 10, 2 );
@@ -509,6 +524,37 @@ function yourls_ui_kit_is_reserved_keyword( $keyword ) {
 
 function yourls_ui_kit_reserved_keyword_message() {
     return 'Custom short URLs cannot contain "kuscc" because it duplicates the hosting name.';
+}
+
+function yourls_ui_kit_block_long_keyword( $pre, $url = '', $keyword = '', $title = '' ) {
+    if ( $pre !== false || !yourls_ui_kit_is_keyword_too_long( $keyword ) ) {
+        return $pre;
+    }
+
+    return array(
+        'status'     => 'fail',
+        'code'       => 'error:keyword',
+        'message'    => yourls_ui_kit_keyword_length_message(),
+        'errorCode'  => 400,
+        'statusCode' => 400,
+        'url'        => $url,
+        'keyword'    => $keyword,
+        'title'      => $title,
+    );
+}
+
+function yourls_ui_kit_block_long_edit_keyword( $pre, $keyword = '', $url = '', $oldkeyword = '', $newkeyword = '', $title = '' ) {
+    if ( $pre !== false || !yourls_ui_kit_is_keyword_too_long( $newkeyword ) ) {
+        return $pre;
+    }
+
+    return array(
+        'status'     => 'fail',
+        'code'       => 'error:keyword',
+        'message'    => yourls_ui_kit_keyword_length_message(),
+        'errorCode'  => 400,
+        'statusCode' => 400,
+    );
 }
 
 function yourls_ui_kit_block_reserved_keyword( $pre, $url = '', $keyword = '', $title = '' ) {
@@ -761,6 +807,7 @@ function yourls_ui_kit_template_settings_page() {
           <h2 class="sb-page-title">UIkit Skin Settings</h2>
           <p class="sb-settings-subtitle">Tune the full admin interface theme without editing plugin files.</p>
         </div>
+        <p class="sb-settings-version" title="yourls_ui_kit_template_version">v<?php echo htmlspecialchars( yourls_ui_kit_template_version(), ENT_QUOTES, 'UTF-8' ); ?></p>
       </div>
 
       <?php echo $notice; ?>
@@ -1096,6 +1143,23 @@ function yourls_ui_kit_record_user( $return, $url, $keyword, $title ) {
 
 yourls_add_action( 'admin_page_before_table', 'yourls_ui_kit_inject_user_data' );
 
+yourls_add_action( 'yourls_ajax_fetch_title', 'yourls_ui_kit_ajax_fetch_title' );
+
+function yourls_ui_kit_ajax_fetch_title() {
+    yourls_verify_nonce( 'add_url', isset( $_REQUEST['nonce'] ) ? $_REQUEST['nonce'] : '', false, 'omg error' );
+
+    $url = isset( $_REQUEST['url'] ) ? yourls_sanitize_url( (string) $_REQUEST['url'] ) : '';
+    if ( !$url || $url === 'http://' || $url === 'https://' ) {
+        echo json_encode( array( 'status' => 'fail', 'title' => '' ) );
+        return;
+    }
+
+    echo json_encode( array(
+        'status' => 'success',
+        'title'  => (string) yourls_get_remote_title( $url ),
+    ) );
+}
+
 function yourls_ui_kit_inject_user_data() {
     $map = array();
     try {
@@ -1111,6 +1175,17 @@ function yourls_ui_kit_inject_user_data() {
 }
 
 yourls_add_action( 'html_head', 'yourls_ui_kit_template_inline_vars', 6 );
+yourls_add_action( 'html_head', 'yourls_ui_kit_public_title_nonce_script', 7 );
+
+function yourls_ui_kit_public_title_nonce_script() {
+    $script = isset( $_SERVER['SCRIPT_NAME'] ) ? basename( (string) $_SERVER['SCRIPT_NAME'] ) : '';
+
+    if ( yourls_is_admin() || $script !== 'index.php' || defined( 'YOURLS_ADMIN' ) ) {
+        return;
+    }
+
+    echo '<script>window._sbPublicTitleNonce="' . htmlspecialchars( yourls_create_nonce( 'add_url' ), ENT_QUOTES, 'UTF-8' ) . '";</script>' . "\n";
+}
 
 function yourls_ui_kit_template_inline_vars() {
     $theme = yourls_ui_kit_get_theme();
